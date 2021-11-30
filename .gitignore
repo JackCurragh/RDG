@@ -130,3 +130,6 @@ dmypy.json
 
 #Ignore Notebooks 
 *.ipynb 
+
+#Ignore Version Script 
+upload_version.sh 
