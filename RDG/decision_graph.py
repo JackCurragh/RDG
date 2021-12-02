@@ -1,30 +1,73 @@
 class RDG(object):
-    def __init__(self, locus, locus_start, locus_stop, nodes=None, edges=None):
+    def __init__(self, locus_stop=1000, nodes=None, edges=None):
         """
-        Takes a nested dictionary as input with nodes as keys.
-        Each node subdictionary has values in and out which are used to get the direction of edges.
+        initialise a fresh empty RDG 
+        """
+        self.locus = ""
+        self.locus_start = 0
+        self.locus_stop = locus_stop
 
-        This dictionary assumes no introns 
-        """
-        transcript_length = locus_stop - locus_start
-        if nodes == None:
-            nodes = {
+        if nodes: 
+            raise ValueError("A value for 'nodes' was provided. If you want to specify from an existing structure use RDG.load()")
+        if edges: 
+            raise ValueError("A value for 'edges' was provided. If you want to specify from an existing structure use RDG.load()")
+
+        transcript_length = locus_stop - self.locus_start
+
+        nodes = {
                 1:Node(key=1, node_type="5_prime", coordinates=(0,1), edges_out=[1], nodes_out=[2]),
                 2:Node(key=2, node_type="3_prime", coordinates=(transcript_length -1, transcript_length), edges_in=[1], nodes_in=[1])
             }
 
-        if edges == None: 
-            edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
+        edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
 
 
-        self.locus = locus
+        self.node_count = 2 
+        self.edge_count = 1 
+        self.edges = edges
+        self.nodes = nodes
+
+    def load(self, locus_name="unnamed", locus_start=0, locus_stop=1000, nodes=None, edges=None):
+        """
+        create a RDG from the given paramaters 
+        """
+        if nodes:
+            self.nodes = nodes
+            self.node_count = len(nodes.keys())
+
+
+        if edges:
+            self.edges = edges 
+            self.edge_count = len(edges.keys())
+        
+
+        self.locus = locus_name
         self.locus_start = locus_start
         self.locus_stop = locus_stop
-        self.node_count = len(nodes.keys())
-        self.edge_count = len(edges.keys())
-        self.nodes = nodes
-        self.edges = edges
-        self.locus = locus 
+        return self
+
+    def load_example(self):
+        '''
+        load a basic graph with one ORF 
+        locus length = 1000
+        orf coordinates = 10, 100
+        '''
+        nodes = {
+            1:Node(key=1, node_type="5_prime", coordinates=(0,1), edges_out=[1], nodes_out=[2]),
+            2:Node(key=2, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3]),
+            3:Node(key=3, node_type="start", coordinates=(10,11), edges_in=[1], edges_out=[2,3], nodes_in=[1], nodes_out=[2,4]),
+            4:Node(key=4, node_type="stop", coordinates=(100,101), edges_in=[3], edges_out=[4], nodes_in=[3], nodes_out=[5]),
+            5:Node(key=5, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3])
+            }
+        edges = {
+            1:Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, 1000 -1)),
+            2:Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 -1)),
+            3:Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
+            4:Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 -1))
+        }
+        g = RDG()
+        g = RDG.load(g, nodes=nodes, edges=edges)
+        return g
 
 
     def vertices(self):
@@ -51,6 +94,7 @@ class RDG(object):
         else:
             return 1
 
+
     def get_new_edge_key(self):
         """
         check the edges to find the lowest available key
@@ -73,10 +117,10 @@ class RDG(object):
         if to_node in self.nodes[from_node].output_nodes:
             self.nodes[from_node].output_nodes.remove(to_node)
 
-        if edge_key in self.nodes[from_node].input_edges:
+        if edge_key in self.nodes[to_node].input_edges:
             self.nodes[to_node].input_edges.remove(edge_key)
 
-        if to_node in self.nodes[from_node].input_nodes:
+        if from_node in self.nodes[to_node].input_nodes:
             self.nodes[to_node].input_nodes.remove(from_node)
 
         if edge_key in self.edges:
@@ -95,8 +139,49 @@ class RDG(object):
 
         self.edges[edge.key] = edge 
 
+
     def add_node(self, node):
         self.nodes[node.key] = node
+
+
+    def update_edge(self, edge_key, new_from_node, new_to_node, new_coordinates):
+        '''
+        functionality for changing 
+        when inserting an orf into an untranslated edge we update the untranslated edge to now start at the new start codon instead
+
+        '''
+        old_from_node = self.edges[edge_key].from_node
+        old_to_node = self.edges[edge_key].to_node
+        old_edge_coordinates = self.edges[edge_key].coordinates
+
+        if old_from_node != new_from_node:
+            if edge_key in self.nodes[old_from_node].output_edges:
+                self.nodes[old_from_node].output_edges.remove(edge_key)
+            
+            if edge_key not in self.nodes[new_from_node].output_edges:
+                self.nodes[new_from_node].output_edges.append(edge_key)
+            
+            if old_to_node in self.nodes[old_from_node].output_nodes:
+                self.nodes[old_from_node].output_nodes.remove(old_to_node)
+            
+            if new_from_node not in self.nodes[new_from_node].output_nodes:
+                self.nodes[new_from_node].output_nodes.append(new_to_node)
+        
+
+
+        if old_to_node != new_to_node:
+            if edge_key in self.nodes[old_to_node].input_edges:
+                self.nodes[old_to_node].input_edges.remove(edge_key)
+
+            if edge_key not in self.nodes[new_to_node].input_edges:
+                self.nodes[new_to_node].input_edges.append(edge_key)
+
+            if old_from_node in self.nodes[old_to_node].input_nodes:
+                self.nodes[old_to_node].input_nodes.remove(old_from_node)
+
+            if new_from_node in self.nodes[new_to_node].input_nodes:
+                self.nodes[new_to_node].input_nodes.remove(new_from_node)
+        self.edges[edge_key].coordinates = new_coordinates
 
 
     def insert_ORF(self, edge, start_node, stop_node):
@@ -106,7 +191,6 @@ class RDG(object):
         five_prime_edge_coords = (edge.coordinates[0], start_node.node_start - 1)
         coding_edge_coords = (start_node.node_start, stop_node.node_stop)
         three_prime_edge_coords = (stop_node.node_stop + 1, edge.coordinates[1])
-        self.remove_edge(edge.key)
 
         edge_key = self.get_new_edge_key()
         five_prime = Edge(key=edge_key, edge_type="untranslated", from_node=edge.from_node, to_node=start_node.key, coordinates=five_prime_edge_coords)
@@ -133,6 +217,9 @@ class RDG(object):
         terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=(edge.coordinates[1],edge.coordinates[1] + 1), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
         self.add_node(terminal_node)
         self.add_edge(three_prime, stop_node.key, terminal_node.key)
+
+        self.update_edge(edge.key, start_node.key, edge.to_node, (start_node.node_stop, self.nodes[edge.to_node].node_start))
+
 
 
 
@@ -342,12 +429,13 @@ if __name__ == "__main__":
           "f" : {"out":[], "in":[]}
         }
 
-    dg = RDG(locus="GeneA", locus_start=0, locus_stop=1000)
+    dg = RDG()
+    dg = dg.load_example()
+    dg.remove_edge(1)
+    # dg.add_open_reading_frame(30, 90)
 
-    dg.add_open_reading_frame(30, 90)
-
-    dg.add_open_reading_frame(150, 171)
-    dg.print_paths()
+    # dg.add_open_reading_frame(150, 171)
+    # dg.print_paths()
 
 
     # for i in dg.nodes:
