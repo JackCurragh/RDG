@@ -53,14 +53,14 @@ class RDG(object):
         orf coordinates = 10, 100
         '''
         nodes = {
-            1:Node(key=1, node_type="5_prime", coordinates=(0,1), edges_out=[1], nodes_out=[2]),
+            1:Node(key=1, node_type="5_prime", coordinates=(0,1), edges_out=[1], nodes_out=[3]),
             2:Node(key=2, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3]),
             3:Node(key=3, node_type="start", coordinates=(10,11), edges_in=[1], edges_out=[2,3], nodes_in=[1], nodes_out=[2,4]),
             4:Node(key=4, node_type="stop", coordinates=(100,101), edges_in=[3], edges_out=[4], nodes_in=[3], nodes_out=[5]),
             5:Node(key=5, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3])
             }
         edges = {
-            1:Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, 1000 -1)),
+            1:Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 1000 -1)),
             2:Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 -1)),
             3:Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
             4:Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 -1))
@@ -82,6 +82,17 @@ class RDG(object):
         return a list of keys of edges in the graph
         '''
         return list(self.edges.keys())
+
+
+    def get_edges_from_to(self):
+        '''
+        return a list of edges (from, to) in the graph
+        '''
+        from_to = [] 
+        for edge in self.edges.keys():
+            from_to.append((self.edges[edge].from_node, self.edges[edge].to_node))
+
+        return from_to
 
 
     def get_new_node_key(self):
@@ -134,6 +145,7 @@ class RDG(object):
         self.nodes[from_node_key].output_edges.append(edge.key)
         self.nodes[from_node_key].output_nodes.append(to_node_key)
 
+        print(to_node_key)
         self.nodes[to_node_key].input_edges.append(edge.key)
         self.nodes[to_node_key].input_nodes.append(from_node_key)
 
@@ -152,7 +164,6 @@ class RDG(object):
         '''
         old_from_node = self.edges[edge_key].from_node
         old_to_node = self.edges[edge_key].to_node
-        old_edge_coordinates = self.edges[edge_key].coordinates
 
         if old_from_node != new_from_node:
             if edge_key in self.nodes[old_from_node].output_edges:
@@ -182,6 +193,7 @@ class RDG(object):
             if new_from_node in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.remove(new_from_node)
         self.edges[edge_key].coordinates = new_coordinates
+        self.edges[edge_key].from_node = new_from_node
 
 
     def insert_ORF(self, edge, start_node, stop_node):
@@ -204,17 +216,13 @@ class RDG(object):
         self.add_node(stop_node)
         self.add_edge(coding, start_node.key, stop_node.key)
 
-        edge_key = self.get_new_edge_key()
-        no_start = Edge(key=edge_key, edge_type="untranslated", from_node=start_node.key, to_node=edge.to_node, coordinates=(start_node.node_start, edge.coordinates[1]))
-
-        self.add_edge(no_start, start_node.key, edge.to_node)
-
-
-        edge_key = self.get_new_edge_key()
-        three_prime = Edge(key=edge_key, edge_type="untranslated", from_node=stop_node.key, to_node=edge.to_node, coordinates=three_prime_edge_coords)
 
         terminal_node_key = self.get_new_node_key()
         terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=(edge.coordinates[1],edge.coordinates[1] + 1), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+
+        edge_key = self.get_new_edge_key()
+        three_prime = Edge(key=edge_key, edge_type="untranslated", from_node=stop_node.key, to_node=terminal_node.key, coordinates=three_prime_edge_coords)
+
         self.add_node(terminal_node)
         self.add_edge(three_prime, stop_node.key, terminal_node.key)
 
@@ -287,7 +295,15 @@ class RDG(object):
         print("all paths", all_paths)
 
 
-
+    def get_branch_points(self):
+        '''
+        return a list of nodes that are branch points
+        '''
+        branch_points = []
+        for node in self.nodes:
+            if len(self.nodes[node].output_edges) > 1:
+                branch_points.append(node)
+        return branch_points
 
 
     def statistics(self):
@@ -363,6 +379,7 @@ class RDG(object):
 
 
 
+
 class Node(object):
     def __init__(self, key, node_type, coordinates, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
         self.key = key
@@ -418,30 +435,4 @@ class Edge(object):
         return self.coordinates[0] % 3 
 
 
-
-if __name__ == "__main__":
-
-    g = { "a" : {"out":[], "in":[]},
-          "b" : {"out":[], "in":[]},
-          "c" : {"out":[], "in":[]},
-          "d" : {"out":[], "in":[]},
-          "e" : {"out":[], "in":[]},
-          "f" : {"out":[], "in":[]}
-        }
-
-    dg = RDG()
-    dg = dg.load_example()
-    dg.remove_edge(1)
-    # dg.add_open_reading_frame(30, 90)
-
-    # dg.add_open_reading_frame(150, 171)
-    # dg.print_paths()
-
-
-    # for i in dg.nodes:
-        # print(dg.nodes[i].key, dg.nodes[i].node_start, dg.nodes[i].node_stop, dg.nodes[i].node_type, dg.nodes[i].output_nodes)
-    # print ()
-
-    # for i in dg.edges:
-    #     print(dg.edges[i].key, dg.edges[i].coordinates, dg.edges[i].edge_type)
 
