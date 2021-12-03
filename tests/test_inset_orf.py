@@ -45,7 +45,17 @@ def test_insterting_orfs_branch_points():
     stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
     
     g.insert_ORF(g.edges[2], start_node, stop_node)
-    
+
+    branch_points = g.get_branch_points()
+
+    assert len(branch_points) == 2
+
+
+def test_add_open_reading_frame():
+    g = RDG()
+    g = RDG.load_example(g)
+
+    g.add_open_reading_frame(15,25)
     branch_points = g.get_branch_points()
 
     assert len(branch_points) == 2

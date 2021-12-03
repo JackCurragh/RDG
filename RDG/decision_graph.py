@@ -60,7 +60,7 @@ class RDG(object):
             5:Node(key=5, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3])
             }
         edges = {
-            1:Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 1000 -1)),
+            1:Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 -1)),
             2:Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 -1)),
             3:Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
             4:Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 -1))
@@ -145,7 +145,6 @@ class RDG(object):
         self.nodes[from_node_key].output_edges.append(edge.key)
         self.nodes[from_node_key].output_nodes.append(to_node_key)
 
-        print(to_node_key)
         self.nodes[to_node_key].input_edges.append(edge.key)
         self.nodes[to_node_key].input_nodes.append(from_node_key)
 
@@ -232,46 +231,80 @@ class RDG(object):
 
 
 
-    def add_open_reading_frame(self, start_codon_position, stop_codon_position):
+    def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False):
         '''
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
         '''
         exisiting_edges = self.get_edges()
+
         clashing_edges = [] 
-        node_key = self.get_new_node_key()
-        start_node = Node(key=node_key, node_type="start_codon", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-
-        node_key = node_key + 1
-        stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-
         for edge in exisiting_edges:
-            if start_codon_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]):
+            if start_codon_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]) and self.edges[edge].edge_type != "translated":
                 clashing_edges.append(edge)
         
         for edge in clashing_edges:
+            node_key = self.get_new_node_key()
+            start_node = Node(key=node_key, node_type="start", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+
+            node_key = node_key + 1
+            stop_node = Node(key=node_key, node_type="stop", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+
             self.insert_ORF(self.edges[edge], start_node, stop_node)
     
-    def explore_node_ouputs(self, node, all_paths, current_path):
-        '''
-        explore the nodes directlty down path from input node 
-        '''
-        print(node, "current path", current_path, all_paths)
-        if self.nodes[node].output_nodes:
-            for output_node in self.nodes[node].output_nodes:
-                current_path.append(output_node)
-                if output_node == 2: print(node, self.nodes[node].output_nodes)
 
-                if self.nodes[output_node].node_type == "3_prime":
-                    print(current_path, all_paths)
-                    all_paths.append(current_path)
-                    current_path = []
-                    return all_paths
-                
-                else:
-                    # print("exploring: ", output_node, self.nodes[output_node].output_nodes)
-                    self.explore_node_ouputs(output_node, all_paths, current_path)
-        else:
-            print(node, current_path)
+    def get_branch_points(self):
+        '''
+        return a list of nodes that are branch points
+        '''
+        branch_points = []
+        for node in self.nodes:
+            if len(self.nodes[node].output_edges) > 1:
+                branch_points.append(node)
+        return branch_points
+
+
+    def get_endpoints(self):
+        '''
+        return list of terminal node keys 
+        '''
+        endpoints = [] 
+        for node in self.nodes:
+            if len(self.nodes[node].output_edges) == 0 and self.nodes[node].node_type == "3_prime":
+                endpoints.append(node)
+        return endpoints
+
+    def get_startpoints(self):
+        '''
+        return list of start node keys 
+        '''
+        startpoints = [] 
+        for node in self.nodes:
+            if len(self.nodes[node].input_edges) == 0 and self.nodes[node].node_type == "5_prime":
+                startpoints.append(node)
+        return startpoints
+    
+
+    def get_start_nodes(self):
+        '''
+        return translation start keys
+        '''
+        translation_starts = [] 
+        for node in self.nodes:
+            if len(self.nodes[node].output_edges) == 2 and self.nodes[node].node_type == "start":
+                translation_starts.append(node)
+        return translation_starts
+
+    def get_stop_nodes(self):
+        '''
+        return translation start keys
+        '''
+        translation_stops = [] 
+        for node in self.nodes:
+            if self.nodes[node].node_type == "stop":
+                translation_stops.append(node)
+        return translation_stops
+
+
 
 
     def print_paths(self):
@@ -295,15 +328,6 @@ class RDG(object):
         print("all paths", all_paths)
 
 
-    def get_branch_points(self):
-        '''
-        return a list of nodes that are branch points
-        '''
-        branch_points = []
-        for node in self.nodes:
-            if len(self.nodes[node].output_edges) > 1:
-                branch_points.append(node)
-        return branch_points
 
 
     def statistics(self):
@@ -374,6 +398,28 @@ class RDG(object):
         stats = self.statistics()
         for entry in stats:
             print(str(entry) + "\t" + str(stats[entry]))
+    
+    def explore_node_ouputs(self, node, all_paths, current_path):
+        '''
+        explore the nodes directlty down path from input node 
+        '''
+        print(node, "current path", current_path, all_paths)
+        if self.nodes[node].output_nodes:
+            for output_node in self.nodes[node].output_nodes:
+                current_path.append(output_node)
+                if output_node == 2: print(node, self.nodes[node].output_nodes)
+
+                if self.nodes[output_node].node_type == "3_prime":
+                    print(current_path, all_paths)
+                    all_paths.append(current_path)
+                    current_path = []
+                    return all_paths
+                
+                else:
+                    # print("exploring: ", output_node, self.nodes[output_node].output_nodes)
+                    self.explore_node_ouputs(output_node, all_paths, current_path)
+        else:
+            print(node, current_path)
 
 
 
@@ -435,4 +481,37 @@ class Edge(object):
         return self.coordinates[0] % 3 
 
 
+
+if __name__ == "__main__":
+
+    dg = RDG()
+    dg = dg.load_example()
+    node_key = dg.get_new_node_key()
+
+    start_codon_position = 15
+    stop_codon_position = 25
+    start_node = Node(key=node_key, node_type="start_codon", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+
+    node_key = node_key + 1
+    stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+    
+    dg.insert_ORF(dg.edges[2], start_node, stop_node)
+    print(dg.get_branch_points())
+    for i in dg.edges:
+        print("Edge: ",i," connects ", dg.edges[i].from_node, " and ", dg.edges[i].to_node)
+
+
+
+    # dg.add_open_reading_frame(30, 90)
+
+    # dg.add_open_reading_frame(150, 171)
+    # dg.print_paths()
+
+
+    # for i in dg.nodes:
+        # print(dg.nodes[i].key, dg.nodes[i].node_start, dg.nodes[i].node_stop, dg.nodes[i].node_type, dg.nodes[i].output_nodes)
+    # print ()
+
+    # for i in dg.edges:
+    #     print(dg.edges[i].key, dg.edges[i].coordinates, dg.edges[i].edge_type)
 
