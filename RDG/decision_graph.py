@@ -57,7 +57,7 @@ class RDG(object):
             2:Node(key=2, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3]),
             3:Node(key=3, node_type="start", coordinates=(10,11), edges_in=[1], edges_out=[2,3], nodes_in=[1], nodes_out=[2,4]),
             4:Node(key=4, node_type="stop", coordinates=(100,101), edges_in=[3], edges_out=[4], nodes_in=[3], nodes_out=[5]),
-            5:Node(key=5, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[2], nodes_in=[3])
+            5:Node(key=5, node_type="3_prime", coordinates=(1000 -1, 1000), edges_in=[4], nodes_in=[4])
             }
         edges = {
             1:Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 -1)),
@@ -228,8 +228,65 @@ class RDG(object):
         self.update_edge(edge.key, start_node.key, edge.to_node, (start_node.node_stop, self.nodes[edge.to_node].node_start))
 
 
+    def is_input_edge_translated(self, node):
+        '''
+        return boolean as to whether an edge entering this node is translated 
+        '''
+        input_edges = self.nodes[node].input_edges
+        boolean = False
+        for edge in input_edges:
+            if self.edges[edge].edge_type == 'translated':
+                boolean = True
+        
+        return boolean
 
 
+    def root_to_node_of_acyclic_node_path(self, node):
+        '''
+        return path from root to given node as a list of node keys
+        '''
+        path = [node]
+        reached_root = False
+
+        while not reached_root: 
+            in_node = self.nodes[node].input_nodes[0]
+            path.append(in_node)
+            if self.nodes[in_node].input_nodes == []:
+                reached_root = True
+            else:
+                node = in_node
+        return(path[::-1])
+
+
+    def root_to_node_of_acyclic_edge_path(self, node):
+        '''
+        return path from root to given node as a list of edge keys
+        '''
+        path = [self.nodes[node].input_edges[0]]
+        reached_root = False
+
+        while not reached_root: 
+            in_node = self.nodes[node].input_nodes[0]
+            if self.nodes[in_node].input_nodes == []:
+                reached_root = True
+            else:
+                path.append(self.nodes[in_node].input_edges[0])
+                node = in_node
+
+        return path[::-1]
+            
+
+    def check_translation_upstream(self, from_node):
+        '''
+        look upstream of an edges from node and see if any edges are of type 'translated' 
+        used in reinit functionality 
+        '''
+        edge_path_to_node_from_root = self.root_to_node_of_acyclic_edge_path(from_node)
+
+        for edge in edge_path_to_node_from_root:
+            if self.edges[edge].edge_type == 'translated':
+                return True
+        return False
 
     def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False):
         '''
@@ -240,16 +297,19 @@ class RDG(object):
         clashing_edges = [] 
         for edge in exisiting_edges:
             if start_codon_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]) and self.edges[edge].edge_type != "translated":
-                clashing_edges.append(edge)
+                upstream_node = self.edges[edge].from_node
+                clashing_edges.append((edge, upstream_node))
+                
         
-        for edge in clashing_edges:
+        for edge, upstream_node in clashing_edges:
             node_key = self.get_new_node_key()
             start_node = Node(key=node_key, node_type="start", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
 
             node_key = node_key + 1
             stop_node = Node(key=node_key, node_type="stop", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+            if reinitiation or not self.check_translation_upstream(upstream_node):
 
-            self.insert_ORF(self.edges[edge], start_node, stop_node)
+                self.insert_ORF(self.edges[edge], start_node, stop_node)
     
 
     def get_branch_points(self):
@@ -495,11 +555,8 @@ if __name__ == "__main__":
     node_key = node_key + 1
     stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
     
-    dg.insert_ORF(dg.edges[2], start_node, stop_node)
-    print(dg.get_branch_points())
-    for i in dg.edges:
-        print("Edge: ",i," connects ", dg.edges[i].from_node, " and ", dg.edges[i].to_node)
-
+    # dg.insert_ORF(dg.edges[2], start_node, stop_node)
+    print(dg.root_to_node_of_acyclic_edge_path(5))
 
 
     # dg.add_open_reading_frame(30, 90)
