@@ -392,25 +392,20 @@ class RDG(object):
 
     def statistics(self):
         stats = {}
-        nodes = list(self.graph.keys())
+        nodes = list(self.nodes.keys())
         calc_dict = {
             "edges": [],
             "frames": [],
             "types": [],
-            "heights": [],
             "frames_freq": {},
             "types_freq": {},
-            "heights_freq": {},
         }
+        
+        calc_dict["edges"] = self.get_edges_from_to()
 
         for i in nodes:
-            for j in self.graph[i].connected:
-                if (j, i) not in calc_dict["edges"]:
-                    calc_dict["edges"].append((i, j))
-
-            calc_dict["frames"].append(self.graph[i].frame)
-            calc_dict["types"].append(self.graph[i].node_type)
-            calc_dict["heights"].append(self.graph[i].height)
+            calc_dict["frames"].append(self.nodes[i].frame)
+            calc_dict["types"].append(self.nodes[i].node_type)
 
         for item in calc_dict["frames"]:
             if item in calc_dict["frames_freq"]:
@@ -424,12 +419,6 @@ class RDG(object):
             else:
                 calc_dict["types_freq"][item] = 1
 
-        for item in calc_dict["heights"]:
-            if item in calc_dict["heights_freq"]:
-                calc_dict["heights_freq"][item] += 1
-            else:
-                calc_dict["heights_freq"][item] = 1
-
         for item in calc_dict["types_freq"]:
             key = "Number_of_" + item
             stats[key] = calc_dict["types_freq"][item]
@@ -438,17 +427,14 @@ class RDG(object):
             key = "Number_of_nodes_in_frame_" + str(item)
             stats[key] = calc_dict["frames_freq"][item]
 
-        for item in calc_dict["heights_freq"]:
-            key = "Number_of_nodes_with_height_" + str(item)
-            stats[key] = calc_dict["heights_freq"][item]
 
         stats["Node_keys"] = nodes
         stats["Number_of_nodes"] = self.node_count
         stats["Edges_keys"] = calc_dict["edges"]
         stats["Number_of_edges"] = len(calc_dict["edges"])
         stats["Number_of_node_types"] = len(calc_dict["types_freq"])
-
         return stats
+
 
     def describe(self):
         """
@@ -457,29 +443,9 @@ class RDG(object):
 
         stats = self.statistics()
         for entry in stats:
-            print(str(entry) + "\t" + str(stats[entry]))
-    
-    def explore_node_ouputs(self, node, all_paths, current_path):
-        '''
-        explore the nodes directlty down path from input node 
-        '''
-        print(node, "current path", current_path, all_paths)
-        if self.nodes[node].output_nodes:
-            for output_node in self.nodes[node].output_nodes:
-                current_path.append(output_node)
-                if output_node == 2: print(node, self.nodes[node].output_nodes)
+            if "Number" in entry: 
+                print(str(entry) + "\t" + str(stats[entry]))
 
-                if self.nodes[output_node].node_type == "3_prime":
-                    print(current_path, all_paths)
-                    all_paths.append(current_path)
-                    current_path = []
-                    return all_paths
-                
-                else:
-                    # print("exploring: ", output_node, self.nodes[output_node].output_nodes)
-                    self.explore_node_ouputs(output_node, all_paths, current_path)
-        else:
-            print(node, current_path)
 
 
 
@@ -556,19 +522,9 @@ if __name__ == "__main__":
     stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
     
     # dg.insert_ORF(dg.edges[2], start_node, stop_node)
-    print(dg.root_to_node_of_acyclic_edge_path(5))
-
+    # dg.describe()
 
     # dg.add_open_reading_frame(30, 90)
 
     # dg.add_open_reading_frame(150, 171)
-    # dg.print_paths()
-
-
-    # for i in dg.nodes:
-        # print(dg.nodes[i].key, dg.nodes[i].node_start, dg.nodes[i].node_stop, dg.nodes[i].node_type, dg.nodes[i].output_nodes)
-    # print ()
-
-    # for i in dg.edges:
-    #     print(dg.edges[i].key, dg.edges[i].coordinates, dg.edges[i].edge_type)
-
+    dg.print_paths()
