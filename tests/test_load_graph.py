@@ -3,7 +3,7 @@ from RDG import RDG, Node, Edge
 
 def test_load_locus_stop_update():
     g = RDG()
-    g = RDG.load(g, locus_name="GeneA", locus_start=0, locus_stop=10000)
+    g = RDG.Load(g, locus_name="GeneA", locus_start=0, locus_stop=10000)
     assert g.locus_stop == 10000
 
 

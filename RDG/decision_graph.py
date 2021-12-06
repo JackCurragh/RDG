@@ -22,25 +22,19 @@ class RDG(object):
         edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
 
 
-        self.node_count = 2 
-        self.edge_count = 1 
         self.edges = edges
         self.nodes = nodes
 
-    def load(self, locus_name="unnamed", locus_start=0, locus_stop=1000, nodes=None, edges=None):
+    def Load(self, locus_name="unnamed", locus_start=0, locus_stop=1000, nodes=None, edges=None):
         """
         create a RDG from the given paramaters 
         """
         if nodes:
             self.nodes = nodes
-            self.node_count = len(nodes.keys())
-
 
         if edges:
             self.edges = edges 
-            self.edge_count = len(edges.keys())
         
-
         self.locus = locus_name
         self.locus_start = locus_start
         self.locus_stop = locus_stop
@@ -66,7 +60,7 @@ class RDG(object):
             4:Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 -1))
         }
         g = RDG()
-        g = RDG.load(g, nodes=nodes, edges=edges)
+        g = RDG.Load(g, nodes=nodes, edges=edges)
         return g
 
 
@@ -451,7 +445,7 @@ class RDG(object):
 
 
         stats["Node_keys"] = nodes
-        stats["Number_of_nodes"] = self.node_count
+        stats["Number_of_nodes"] = len(self.nodes.keys())
         stats["Edges_keys"] = calc_dict["edges"]
         stats["Number_of_edges"] = len(calc_dict["edges"])
         stats["Number_of_node_types"] = len(calc_dict["types_freq"])
@@ -462,11 +456,13 @@ class RDG(object):
         """
         print in the terminal a description of the graph
         """
-
+        output = ""
         stats = self.statistics()
         for entry in stats:
             if "Number" in entry: 
-                print(str(entry) + "\t" + str(stats[entry]))
+                string = str(entry) + "\t" + str(stats[entry])
+                output = output  + "\n" + string 
+        return output
 
 
 

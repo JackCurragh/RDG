@@ -133,3 +133,6 @@ dmypy.json
 
 #Ignore Version Script 
 upload_version.sh 
+
+#Ignore sqlite files 
+*.sqlite
