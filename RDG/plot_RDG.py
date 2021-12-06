@@ -4,21 +4,6 @@ from RDG import RDG, Node, Edge
 
 
 
-def plot(graph):
-    '''
-    Plot a riboosome decision graph as a basic undirected graph with spring layout
-    '''
-    G = nx.Graph()
-    edges = graph.get_edges_from_to()
-    print(edges)
-    G.add_edges_from(edges)
-    nx.draw_networkx(G)
-    plt.show()
-
-    for i in graph.nodes:
-        print(i)
-
-
 def position_graphs_nodes(graph):
     '''
     determine the positioning of rdg nodes from graph structure. 
@@ -29,12 +14,17 @@ def position_graphs_nodes(graph):
     pos = {}
     for i in node_x_positions:
         pos[i[0]] = (i[1], i[0])
+    
+    highest_node = max(list(pos.keys()))
+    pos[2] = (pos[2][0], pos[highest_node][1] + 1)
 
     return pos
 
-def plot_directed(graph):
+
+def plot(graph, color_dict=None):
     G = nx.DiGraph()
     edges = graph.get_edges_from_to()
+
     pos = position_graphs_nodes(graph)
 
     endpoints = graph.get_endpoints()
@@ -42,7 +32,7 @@ def plot_directed(graph):
     translation_starts = graph.get_start_nodes()
     translation_stops = graph.get_stop_nodes()
 
-    G.add_edges_from(edges)
+    G.add_edges_from(edges.keys())
     node_colors = []
     for node in G.nodes():
         if node in startpoints:
@@ -55,23 +45,35 @@ def plot_directed(graph):
             node_colors.append((1,0,0))
         else:
             node_colors.append((0,0,0))
-    nx.draw_networkx(G, pos=pos, node_shape='s', node_color=node_colors)
+    
+    edge_colors = []
+    for edge in G.edges:
+        print(graph.edges[edges[edge]].edge_type)
+        if graph.edges[edges[edge]].edge_type == "translated":
+            frame = (graph.edges[edges[edge]].coordinates[0]-1)%3
+        else:
+            frame = None
+
+        if frame == 0:
+            edge_colors.append((1,0,0))
+        elif frame == 1:
+            edge_colors.append((0,1,0))
+        elif frame == 2:
+            edge_colors.append((0,0,1))
+        else:
+            edge_colors.append((0,0,0))
+            
+    print(edge_colors)
+
+
+    nx.draw_networkx(G, pos=pos, node_shape='o', node_size=100, node_color=node_colors, edge_color=edge_colors, with_labels=False)
 
     plt.show()
 
 
 if __name__ == "__main__":
     dg = RDG()
-    dg = dg.load_example()
-    node_key = dg.get_new_node_key()
-
-    start_codon_position = 150
-    stop_codon_position = 850
-    start_node = Node(key=node_key, node_type="start_codon", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-
-    node_key = node_key + 1
-    stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-    
-    # dg.insert_ORF(dg.edges[2], start_node, stop_node)
+    dg.add_open_reading_frame(30, 90)
+    dg.add_open_reading_frame(131, 171)
     dg.add_open_reading_frame(150,850)
-    plot_directed(dg)
+    plot(dg)

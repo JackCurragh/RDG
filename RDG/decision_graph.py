@@ -88,9 +88,9 @@ class RDG(object):
         '''
         return a list of edges (from, to) in the graph
         '''
-        from_to = [] 
+        from_to = {} 
         for edge in self.edges.keys():
-            from_to.append((self.edges[edge].from_node, self.edges[edge].to_node))
+            from_to[(self.edges[edge].from_node, self.edges[edge].to_node)] = edge
 
         return from_to
 
@@ -262,6 +262,10 @@ class RDG(object):
         '''
         return path from root to given node as a list of edge keys
         '''
+        if self.nodes[node].input_nodes == []:
+            reached_root = True
+            return []
+
         path = [self.nodes[node].input_edges[0]]
         reached_root = False
 
@@ -293,9 +297,9 @@ class RDG(object):
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
         '''
         exisiting_edges = self.get_edges()
-
         clashing_edges = [] 
         for edge in exisiting_edges:
+
             if start_codon_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]) and self.edges[edge].edge_type != "translated":
                 upstream_node = self.edges[edge].from_node
                 clashing_edges.append((edge, upstream_node))
@@ -308,7 +312,6 @@ class RDG(object):
             node_key = node_key + 1
             stop_node = Node(key=node_key, node_type="stop", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
             if reinitiation or not self.check_translation_upstream(upstream_node):
-
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
     
 
@@ -364,6 +367,25 @@ class RDG(object):
                 translation_stops.append(node)
         return translation_stops
 
+    
+    def get_orfs(self):
+        '''
+        return a list of coordinates (start, stop) describing the ORFs in the graph
+        ''' 
+        translation_starts = self.get_start_nodes()
+
+        orfs = []
+        for start in translation_starts:
+            downstream_nodes = self.nodes[start].output_nodes
+
+            for candidate_stop in downstream_nodes:
+                if self.nodes[candidate_stop].node_type == "stop":
+                    orfs.append((self.nodes[start].node_start, self.nodes[candidate_stop].node_start))
+        
+        return orfs
+
+
+
 
 
 
@@ -401,7 +423,7 @@ class RDG(object):
             "types_freq": {},
         }
         
-        calc_dict["edges"] = self.get_edges_from_to()
+        calc_dict["edges"] = self.get_edges_from_to().keys()
 
         for i in nodes:
             calc_dict["frames"].append(self.nodes[i].frame)
@@ -512,19 +534,7 @@ if __name__ == "__main__":
 
     dg = RDG()
     dg = dg.load_example()
-    node_key = dg.get_new_node_key()
+    dg.add_open_reading_frame(30, 90)
 
-    start_codon_position = 15
-    stop_codon_position = 25
-    start_node = Node(key=node_key, node_type="start_codon", coordinates=(start_codon_position, start_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-
-    node_key = node_key + 1
-    stop_node = Node(key=node_key, node_type="stop_codon", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-    
-    # dg.insert_ORF(dg.edges[2], start_node, stop_node)
-    # dg.describe()
-
-    # dg.add_open_reading_frame(30, 90)
-
-    # dg.add_open_reading_frame(150, 171)
-    dg.print_paths()
+    dg.add_open_reading_frame(150, 171)
+    print(dg.get_orfs())
