@@ -31,6 +31,7 @@ def plot(graph, color_dict=None):
     startpoints = graph.get_startpoints()
     translation_starts = graph.get_start_nodes()
     translation_stops = graph.get_stop_nodes()
+    frameshifts = graph.get_frameshifts()
 
     G.add_edges_from(edges.keys())
     node_colors = []
@@ -43,14 +44,15 @@ def plot(graph, color_dict=None):
             node_colors.append((0,1,0))
         elif node in translation_stops:
             node_colors.append((1,0,0))
+        elif node in frameshifts:
+            node_colors.append((1,0.5,0.3))
         else:
             node_colors.append((0,0,0))
     
     edge_colors = []
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":
-            from_node = graph.edges[edges[edge]].from_node
-            frame = graph.nodes[from_node].frame
+            frame = graph.edges[edges[edge]].frame
         else:
             frame = None
 
@@ -65,7 +67,7 @@ def plot(graph, color_dict=None):
             
 
 
-    nx.draw_networkx(G, pos=pos, node_shape='o', node_size=100, node_color=node_colors, edge_color=edge_colors, with_labels=False)
+    nx.draw_networkx(G, pos=pos, node_shape='o', node_size=100, node_color=node_colors, edge_color=edge_colors, with_labels=True)
 
     plt.show()
 
@@ -73,9 +75,8 @@ def plot(graph, color_dict=None):
 if __name__ == "__main__":
     dg = RDG()
     dg.add_open_reading_frame(30, 90)
-    dg.add_stop_codon_readthrough(90, 120)
+    dg.add_open_reading_frame(150, 850)
 
-    dg.add_open_reading_frame(131, 171)
-    dg.add_open_reading_frame(150,850)
+    dg.add_frameshift(800, 900, 2)
 
     plot(dg)

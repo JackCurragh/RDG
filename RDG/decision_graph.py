@@ -154,6 +154,8 @@ class RDG(object):
         self.nodes[to_node_key].input_nodes.append(from_node_key)
 
         self.edges[edge.key] = edge 
+        self.edges[edge.key].frame = self.nodes[from_node_key].node_start%3
+
 
 
     def add_node(self, node):
@@ -330,34 +332,114 @@ class RDG(object):
         three_prime_terminal_key = self.nodes[readthrough_codon_key].output_nodes[0]
 
         node_key = self.get_new_node_key()
-        new_stop_node = Node(key=node_key, node_type="stop", coordinates=(next_stop_codon_position, next_stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-        self.add_node(new_stop_node)
+        terminal_node_key = node_key + 1
 
         edge_key = self.get_new_edge_key()
+        edge_key2 = edge_key + 1
+
+        new_stop_node = Node(key=node_key, node_type="stop", coordinates=(next_stop_codon_position, next_stop_codon_position + 2), edges_in=[edge_key], edges_out=[edge_key2], nodes_in=[readthrough_codon_key], nodes_out=[terminal_node])
+        self.add_node(new_stop_node)
+
         coding = Edge(key=edge_key, edge_type="translated", from_node=readthrough_codon_key, to_node=new_stop_node.key, coordinates=(self.nodes[readthrough_codon_key].node_stop, next_stop_codon_position))
         self.add_edge(coding, readthrough_codon_key, new_stop_node.key)
-
 
         self.nodes[readthrough_codon_key].output_edges.append(coding.key)
         self.nodes[readthrough_codon_key].output_nodes.append(new_stop_node.key)
         self.nodes[readthrough_codon_key].node_type = "readthrough_stop"
         
+        three_prime = Edge(key=edge_key2, edge_type="untranslated", from_node=new_stop_node.key, to_node=terminal_node_key, coordinates=(new_stop_node.node_stop, self.nodes[three_prime_terminal_key].node_start))
 
         terminal_node_key = self.get_new_node_key()
-
-
-        edge_key = self.get_new_edge_key()
-
-        three_prime = Edge(key=edge_key, edge_type="untranslated", from_node=new_stop_node.key, to_node=terminal_node_key, coordinates=(new_stop_node.node_stop, self.nodes[three_prime_terminal_key].node_start))
-
-        terminal_node_key = self.get_new_node_key()
-        terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=(self.nodes[three_prime_terminal_key].node_start,self.nodes[three_prime_terminal_key].node_start + 1), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+        terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=(self.nodes[three_prime_terminal_key].node_start,self.nodes[three_prime_terminal_key].node_start + 1), edges_in=[edge_key2], edges_out=[], nodes_in=[new_stop_node.key], nodes_out=[])
         self.add_node(terminal_node)
 
         self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
 
 
-    
+    def add_frameshift(self, fs_position, next_stop_codon_position, shift):
+        '''
+        add a frameshifting event 
+        '''
+        exisiting_edges = self.get_edges()
+        clashing_edges = [] 
+        for edge in exisiting_edges:
+            if fs_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]) and self.edges[edge].edge_type == "translated":
+                upstream_node = self.edges[edge].from_node
+                clashing_edges.append((edge, upstream_node))  
+
+        for edge, upstream_node in clashing_edges:
+            # edge and upstrream are keys
+            shift_node_key = self.get_new_node_key()
+            new_stop_node_key = shift_node_key + 1
+            old_stop_node_key = self.edges[edge].to_node
+            new_terminal_key = new_stop_node_key + 1
+
+            old_stop_edge_key = self.get_new_edge_key()
+            new_stop_edge_key = old_stop_edge_key + 1
+            new_three_prime_edge_key = new_stop_edge_key + 1
+
+            shift_node = Node(key=shift_node_key, 
+            node_type="frameshift", 
+            coordinates=(fs_position, fs_position + 2), 
+            edges_in=[edge], 
+            edges_out=[old_stop_edge_key, new_stop_edge_key], 
+            nodes_in=[upstream_node], 
+            nodes_out=[old_stop_node_key, new_stop_node_key])
+            self.add_node(shift_node)
+
+            self.nodes[upstream_node].output_nodes.remove(old_stop_node_key)
+            self.nodes[upstream_node].output_nodes.append(shift_node.key)
+
+            self.edges[edge].to_node = shift_node_key
+
+            self.nodes[old_stop_node_key].input_edges.remove(edge)
+            self.nodes[old_stop_node_key].input_edges.append(old_stop_edge_key)
+            self.nodes[old_stop_node_key].input_nodes.remove(upstream_node)
+            self.nodes[old_stop_node_key].input_nodes.append(shift_node_key)
+
+            
+            new_stop_node = Node(key=new_stop_node_key, 
+            node_type="stop", 
+            coordinates=(next_stop_codon_position, next_stop_codon_position + 2), 
+            edges_in=[new_stop_edge_key], 
+            edges_out=[new_three_prime_edge_key], 
+            nodes_in=[shift_node_key], 
+            nodes_out=[new_terminal_key])
+            self.add_node(new_stop_node)
+            
+            new_terminal_node = Node(key=new_terminal_key, 
+            node_type="3_prime",
+            coordinates=(self.locus_stop, self.locus_stop+1), 
+            edges_in=[new_three_prime_edge_key], 
+            edges_out=[], 
+            nodes_in=[new_stop_node_key], 
+            nodes_out=[])
+            self.add_node(new_terminal_node)
+
+            old_stop_edge = Edge(key=old_stop_edge_key,
+            edge_type="translated",
+            from_node=shift_node_key,
+            to_node=old_stop_node_key,
+            coordinates=(shift_node.node_stop, self.nodes[old_stop_node_key].node_start))
+            self.add_edge(old_stop_edge, from_node_key=shift_node_key, to_node_key=old_stop_node_key)
+            self.edges[old_stop_edge_key].frame = self.edges[edge].frame
+
+            new_stop_edge = Edge(key=new_stop_edge_key,
+            edge_type="translated",
+            from_node=shift_node_key,
+            to_node=new_stop_node_key,
+            coordinates=(shift_node.node_stop, self.nodes[new_stop_node_key].node_start))
+            self.add_edge(new_stop_edge, from_node_key=shift_node_key, to_node_key=new_stop_node_key)
+
+
+            new_three_prime_edge = Edge(key=new_three_prime_edge_key,
+            edge_type="untranslated",
+            from_node=new_stop_node_key,
+            to_node=new_terminal_key,
+            coordinates=(new_stop_node.node_stop, new_terminal_node.node_start))
+            self.add_edge(new_three_prime_edge, from_node_key=new_stop_node_key, to_node_key=new_terminal_key)
+
+
 
     def get_branch_points(self):
         '''
@@ -429,6 +511,17 @@ class RDG(object):
                     orfs.append((self.nodes[start].node_start, self.nodes[candidate_stop].node_start))
         
         return orfs
+
+
+    def get_frameshifts(self):
+        '''
+        return a list of keys for all frameshift nodes
+        '''
+        frameshifts = [] 
+        for node in self.nodes:
+            if "frameshift" in  self.nodes[node].node_type:
+                frameshifts.append(node)
+        return frameshifts
 
 
     def print_paths(self):
