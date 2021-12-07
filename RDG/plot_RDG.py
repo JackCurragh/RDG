@@ -48,9 +48,9 @@ def plot(graph, color_dict=None):
     
     edge_colors = []
     for edge in G.edges:
-        print(graph.edges[edges[edge]].edge_type)
         if graph.edges[edges[edge]].edge_type == "translated":
-            frame = (graph.edges[edges[edge]].coordinates[0]-1)%3
+            from_node = graph.edges[edges[edge]].from_node
+            frame = graph.nodes[from_node].frame
         else:
             frame = None
 
@@ -63,7 +63,6 @@ def plot(graph, color_dict=None):
         else:
             edge_colors.append((0,0,0))
             
-    print(edge_colors)
 
 
     nx.draw_networkx(G, pos=pos, node_shape='o', node_size=100, node_color=node_colors, edge_color=edge_colors, with_labels=False)
@@ -74,6 +73,9 @@ def plot(graph, color_dict=None):
 if __name__ == "__main__":
     dg = RDG()
     dg.add_open_reading_frame(30, 90)
+    dg.add_stop_codon_readthrough(90, 120)
+
     dg.add_open_reading_frame(131, 171)
     dg.add_open_reading_frame(150,850)
+
     plot(dg)

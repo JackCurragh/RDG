@@ -25,6 +25,7 @@ class RDG(object):
         self.edges = edges
         self.nodes = nodes
 
+
     def Load(self, locus_name="unnamed", locus_start=0, locus_stop=1000, nodes=None, edges=None):
         """
         create a RDG from the given paramaters 
@@ -109,6 +110,16 @@ class RDG(object):
             return max(keys) + 1
         else:
             return 1
+
+    def get_key_from_position(self, position, node_type):
+        '''
+        return the node key for the node of specified type at the stated position 
+        '''
+        for node in self.nodes:
+            if self.nodes[node].node_start == position and self.nodes[node].node_type == node_type:
+                return node
+
+
 
     def remove_edge(self, edge_key):
         '''
@@ -286,6 +297,7 @@ class RDG(object):
                 return True
         return False
 
+
     def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False):
         '''
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
@@ -307,6 +319,44 @@ class RDG(object):
             stop_node = Node(key=node_key, node_type="stop", coordinates=(stop_codon_position, stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
             if reinitiation or not self.check_translation_upstream(upstream_node):
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
+
+    
+    def add_stop_codon_readthrough(self, readthrough_codon_position, next_stop_codon_position):
+        '''
+        Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
+
+        '''
+        readthrough_codon_key = self.get_key_from_position(readthrough_codon_position, "stop")
+        three_prime_terminal_key = self.nodes[readthrough_codon_key].output_nodes[0]
+
+        node_key = self.get_new_node_key()
+        new_stop_node = Node(key=node_key, node_type="stop", coordinates=(next_stop_codon_position, next_stop_codon_position + 2), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+        self.add_node(new_stop_node)
+
+        edge_key = self.get_new_edge_key()
+        coding = Edge(key=edge_key, edge_type="translated", from_node=readthrough_codon_key, to_node=new_stop_node.key, coordinates=(self.nodes[readthrough_codon_key].node_stop, next_stop_codon_position))
+        self.add_edge(coding, readthrough_codon_key, new_stop_node.key)
+
+
+        self.nodes[readthrough_codon_key].output_edges.append(coding.key)
+        self.nodes[readthrough_codon_key].output_nodes.append(new_stop_node.key)
+        self.nodes[readthrough_codon_key].node_type = "readthrough_stop"
+        
+
+        terminal_node_key = self.get_new_node_key()
+
+
+        edge_key = self.get_new_edge_key()
+
+        three_prime = Edge(key=edge_key, edge_type="untranslated", from_node=new_stop_node.key, to_node=terminal_node_key, coordinates=(new_stop_node.node_stop, self.nodes[three_prime_terminal_key].node_start))
+
+        terminal_node_key = self.get_new_node_key()
+        terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=(self.nodes[three_prime_terminal_key].node_start,self.nodes[three_prime_terminal_key].node_start + 1), edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+        self.add_node(terminal_node)
+
+        self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
+
+
     
 
     def get_branch_points(self):
@@ -330,6 +380,7 @@ class RDG(object):
                 endpoints.append(node)
         return endpoints
 
+
     def get_startpoints(self):
         '''
         return list of start node keys 
@@ -351,13 +402,14 @@ class RDG(object):
                 translation_starts.append(node)
         return translation_starts
 
+
     def get_stop_nodes(self):
         '''
         return translation start keys
         '''
         translation_stops = [] 
         for node in self.nodes:
-            if self.nodes[node].node_type == "stop":
+            if "stop" in  self.nodes[node].node_type:
                 translation_stops.append(node)
         return translation_stops
 
@@ -379,10 +431,6 @@ class RDG(object):
         return orfs
 
 
-
-
-
-
     def print_paths(self):
         '''
         read out the paths from the graph object 
@@ -402,8 +450,6 @@ class RDG(object):
             else:
                 all_paths.append(path_from_root_nodes)
         print("all paths", all_paths)
-
-
 
 
     def statistics(self):
@@ -533,4 +579,5 @@ if __name__ == "__main__":
     dg.add_open_reading_frame(30, 90)
 
     dg.add_open_reading_frame(150, 171)
+    dg.add_stop_codon_readthrough(90, 120)
     print(dg.get_orfs())
