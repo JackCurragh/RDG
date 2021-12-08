@@ -57,7 +57,7 @@ def load(locus, cache_file="test_output.sqlite"):
     for key in graph_dict['nodes']:
         nodes[key] = Node(key, 
         graph_dict['nodes'][key]['node_type'], 
-        (graph_dict['nodes'][key]['node_start'], graph_dict['nodes'][key]['node_stop']),
+        graph_dict['nodes'][key]['node_start'],
         graph_dict['nodes'][key]['input_edges'],
         graph_dict['nodes'][key]['output_edges'],
         graph_dict['nodes'][key]['input_nodes'],
