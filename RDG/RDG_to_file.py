@@ -78,16 +78,16 @@ def load(locus, cache_file="test_output.sqlite"):
 
 
 
-if __name__ == "__main__":
-    dg = RDG()
-    dg.add_open_reading_frame(30, 90)
-    dg.add_open_reading_frame(131, 171)
-    dg.add_open_reading_frame(150,850)
+# if __name__ == "__main__":
+#     dg = RDG()
+#     dg.add_open_reading_frame(30, 90)
+#     dg.add_open_reading_frame(131, 171)
+#     dg.add_open_reading_frame(150,850)
    
-    # save(dg, 'test_output.sqlite')
-    dg2 = load('', 'test_output.sqlite')
+#     # save(dg, 'test_output.sqlite')
+#     dg2 = load('', 'test_output.sqlite')
 
-    a = dg.describe()
-    print()
-    b = dg2.describe()
-    print(a == b)
+#     a = dg.describe()
+#     print()
+#     b = dg2.describe()
+#     print(a == b)

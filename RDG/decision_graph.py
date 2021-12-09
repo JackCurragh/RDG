@@ -288,20 +288,23 @@ class RDG(object):
         return path[::-1]
             
 
-    def check_translation_upstream(self, from_node):
+    def check_translation_upstream(self, from_node, upstream_limit=1):
         '''
         look upstream of an edges from node and see if any edges are of type 'translated' 
-        used in reinit functionality 
+        used in reinit functionality. Upstream limit refers to the number of ORFs allowed upstream. ie. can the be multiple reinitiation events or just one etc
         '''
         edge_path_to_node_from_root = self.root_to_node_of_acyclic_edge_path(from_node)
-
+        number_of_translated_regions = 0
         for edge in edge_path_to_node_from_root:
             if self.edges[edge].edge_type == 'translated':
-                return True
-        return False
+                number_of_translated_regions += 1
+
+        if number_of_translated_regions <= upstream_limit:
+            return False
+        return True
 
 
-    def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False):
+    def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False, upstream_limit=1):
         '''
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
         '''
@@ -320,7 +323,7 @@ class RDG(object):
 
             node_key = node_key + 1
             stop_node = Node(key=node_key, node_type="stop", coordinates=stop_codon_position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
-            if reinitiation or not self.check_translation_upstream(upstream_node):
+            if reinitiation or not self.check_translation_upstream(upstream_node, upstream_limit=upstream_limit):
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
 
     
@@ -519,6 +522,7 @@ class RDG(object):
                             orf = (self.nodes[start].node_start, self.nodes[candidate_stop].node_start, self.nodes[new_candidate_stop].node_start)
                             if orf not in orfs:
                                 orfs.append(orf)
+
                 elif self.nodes[candidate_stop].node_type == "readthrough_stop":
                     orfs.append((self.nodes[start].node_start, self.nodes[candidate_stop].node_start))
                     readthrough_downstream_nodes = self.nodes[candidate_stop].output_nodes
@@ -685,12 +689,12 @@ class Edge(object):
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    dg = RDG()
-    dg = dg.load_example()
-    dg.add_open_reading_frame(30, 90)
+#     dg = RDG()
+#     dg = dg.load_example()
+#     dg.add_open_reading_frame(30, 90)
 
-    dg.add_open_reading_frame(150, 171)
-    dg.add_stop_codon_readthrough(90, 120)
-    print(dg.get_orfs())
+#     dg.add_open_reading_frame(150, 171)
+#     dg.add_stop_codon_readthrough(90, 120)
+#     print(dg.get_orfs())

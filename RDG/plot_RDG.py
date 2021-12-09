@@ -104,14 +104,14 @@ def plot(graph, color_dict=None):
     plt.show()
 
 
-if __name__ == "__main__":
-    dg = RDG()
-    dg.add_open_reading_frame(30, 90)
-    dg.add_open_reading_frame(61, 400)
-    dg.add_open_reading_frame(92, 150)
+# if __name__ == "__main__":
+#     dg = RDG()
+#     dg.add_open_reading_frame(30, 90)
+#     dg.add_open_reading_frame(61, 400)
+#     dg.add_open_reading_frame(92, 150)
 
-    # dg.add_open_reading_frame(550, 850)
-    # dg.add_stop_codon_readthrough(850, 880)
-    dg.add_frameshift(400, 450, 2)
-    # print(dg.get_orfs())
-    plot(dg)
+#     # dg.add_open_reading_frame(550, 850)
+#     # dg.add_stop_codon_readthrough(850, 880)
+#     dg.add_frameshift(400, 450, 2)
+#     # print(dg.get_orfs())
+#     plot(dg)
