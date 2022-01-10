@@ -1,9 +1,9 @@
 class RDG(object):
-    def __init__(self, locus_stop=1000, nodes=None, edges=None):
+    def __init__(self, locus_stop=1000, nodes=None, edges=None, name=None):
         """
         initialise a fresh empty RDG 
         """
-        self.locus = ""
+        self.locus = name
         self.locus_start = 0
         self.locus_stop = locus_stop
 
@@ -284,7 +284,6 @@ class RDG(object):
             else:
                 path.append(self.nodes[in_node].input_edges[0])
                 node = in_node
-
         return path[::-1]
             
 
@@ -304,14 +303,13 @@ class RDG(object):
         return True
 
 
-    def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False, upstream_limit=1):
+    def add_open_reading_frame(self, start_codon_position, stop_codon_position, reinitiation=False, upstream_limit=0):
         '''
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
         '''
         exisiting_edges = self.get_edges()
         clashing_edges = [] 
         for edge in exisiting_edges:
-
             if start_codon_position in range(self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]) and self.edges[edge].edge_type != "translated":
                 upstream_node = self.edges[edge].from_node
                 clashing_edges.append((edge, upstream_node))

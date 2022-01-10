@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-from RDG import RDG, Node, Edge
+from decision_graph import RDG, Node, Edge
 from matplotlib.gridspec import GridSpec
 
 
@@ -65,15 +65,14 @@ def plot(graph, color_dict=None):
             edge_colors.append((0,0,1))
         else:
             edge_colors.append((0,0,0))
-            
     fig = plt.figure()
-    fig.suptitle("Visualisation of an RDG")
+    fig.suptitle(f"Visualisation of an RDG for {graph.locus}")
 
     gs = GridSpec(2, 1, width_ratios=[1], height_ratios=[4, 1], hspace=0)
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1])
 
-    nx.draw_networkx(G, pos=pos, ax=ax1, node_shape='o', node_size=100, node_color=node_colors, edge_color=edge_colors, with_labels=False)
+    nx.draw_networkx(G, pos=pos, ax=ax1, node_shape='o', node_size=10, node_color=node_colors, edge_color=edge_colors, with_labels=False)
 
     orfs_in_frame = {0:[], 1:[], 2:[]} 
 
@@ -93,7 +92,7 @@ def plot(graph, color_dict=None):
     for frame, color in zip(sorted(orfs_in_frame.keys()), [(1,0,0), (0,1,0),  (0,0,1)]):
         yticks_heights.append(height + 1)
         yticks_labels.append("Frame " + str(frame + 1))
-        ax2.broken_barh(sorted(orfs_in_frame[frame])[::-1], (height, 2), facecolors=color, edgecolor='black',)
+        ax2.broken_barh(sorted(orfs_in_frame[frame]), (height, 2), facecolors=color, edgecolor='black',)
         height += 3
 
     ax2.tick_params(bottom=True, labelbottom=True)

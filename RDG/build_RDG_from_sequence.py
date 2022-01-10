@@ -73,31 +73,32 @@ def parse_sequence_into_translated_regions(sequence, starts=["ATG", "CTG", "GTG"
     return orfs
 
 
-def build_graphs_from_fasta(file_path, min_lenth=10, reinitiation=False, readthrough=False, upstream_limit=1):
+def build_graphs_from_fasta(file_path, min_lenth=100, start_codons=["ATG", "CTG", "GTG"], reinitiation=False, readthrough=False, upstream_limit=1):
     file = open(file_path, 'r').readlines()
     sequences = {} 
     for line in file:
         if line[0] == '>':
-            sequences[line.strip('\n')] = ""
-            previous_line = line.strip('\n')
+            name = line.split(" ")[0][1:]
+            sequences[name] = ""
+            
         else:
-            sequences[previous_line] += line.strip('\n')
+            sequences[name] += line.strip('\n')
 
     graphs = []
     for sequence in sequences:
-        orfs = parse_sequence_into_translated_regions(sequences[sequence], min_length=min_lenth)
-        dg = RDG(locus_stop=len(sequences[sequence]))
+        orfs = parse_sequence_into_translated_regions(sequences[sequence], starts=start_codons, min_length=min_lenth)
+        dg = RDG(name=sequence, locus_stop=len(sequences[sequence]))
         with Bar('building...') as bar:
-            for orf in sorted(orfs)[:30]:
+            for orf in sorted(orfs):
                 dg.add_open_reading_frame(orf[0], orf[1], reinitiation=reinitiation)
 
                 bar.next()
         graphs.append(dg)
     return graphs
 
-if __name__ == "__main__":
-    file = open('/home/jack/DDX11L1.fa', 'r').readlines()
-    graphs = build_graphs_from_fasta('/home/jack/DDX11L1.fa')
-    for dg in graphs:
-        plot(dg)
+# if __name__ == "__main__":
+#     file = open('C:\Users\JackTierney\Downloads\PHPT1_datasets\ncbi_dataset', 'r').readlines()
+#     graphs = build_graphs_from_fasta('C:\Users\JackTierney\Downloads\PHPT1_datasets\ncbi_dataset')
+#     for dg in graphs:
+#         plot(dg)
 
