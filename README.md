@@ -2,11 +2,11 @@
 Implementation of the Ribosome Decision Graph Concept
 
 ## Background 
-  ![Depiction of typical annotation structure ](https://github.com/JackCurragh/RDG/blob/main/images/current_representation.png)
+  <kbd>![Depiction of typical annotation structure ](https://github.com/JackCurragh/RDG/blob/main/images/current_representation.png)</kbd>
   
 This figure is a schematic showing the anatomy of a coding RNA transcript according to canonical annotation approaches. Each coding transcript has three parts. Two regions, 5' UTR and 3' UTR, are considered to be untranslated and a single coding region is annotated as protein coding (CDS).      
 
-![ORF plot showing how multiple coding regions per transcript are annotated](https://github.com/JackCurragh/RDG/blob/main/images/ORF_plot.png)
+<kbd>![ORF plot showing how multiple coding regions per transcript are annotated](https://github.com/JackCurragh/RDG/blob/main/images/ORF_plot.png)</kbd>
 
 The top figure shows the CDS annotation corresponding to the ORF organisation shown on the bottom. 
 
@@ -14,7 +14,7 @@ Current approaches for representing multiple coding regions on the same mRNA tra
 
 ## Graph Data Structures for Biological Information 
 
-![](https://github.com/JackCurragh/RDG/blob/main/images/Other_biological_info)
+<kbd>![](https://github.com/JackCurragh/RDG/blob/main/images/Other_biological_info)</kbd>
 
 Genomic variation such as single nucleotide polymorphisms, repeat expansions and indels in samples have been shown to lead to reference bias in genomic analysis (Paten et al.,2017). Sequence graphs have been developed to support the representation of genomic variation at the population level. At the genome level, each path through such a graph is a potential haplotype. 
 
@@ -24,18 +24,18 @@ There is however no such structure that supports the representation of protein c
 
 ## Introducing Ribosome Decision Graphs 
 
-![](https://github.com/JackCurragh/RDG/blob/main/images/RDG.png)
+<kbd>![](https://github.com/JackCurragh/RDG/blob/main/images/RDG.png)</kbd>
 
 We propose a "Ribosome Decision Graph (RDG)" structure (right) to represent RNA transcripts that encode multiple proteoforms (left). Here, start codons form branch points ("decisions") in the graph with each path representing possible translation fates of individual ribosomes.
 
 In the interest of clear visualisation, branch points are only introduced at translation starts allowing the representation of the mechanism of leaky scanning. Similarly, branch points may be introduced for any other mechanisms described above.
 
-![](https://github.com/JackCurragh/RDG/blob/main/images/Proportion_of_peptides.png)
+<kbd>![](https://github.com/JackCurragh/RDG/blob/main/images/Proportion_of_peptides.png)</kbd>
 
 A figure depicting a RDG augmented with probabilites of ribosome 'decisions' (initiation, termination, etc.). allowing the prediction of relative synthesis rates of individual proteoforms.
 
 
-![](https://github.com/JackCurragh/RDG/blob/main/images/Impact_of_point_mutationspng)
+<kbd>![](https://github.com/JackCurragh/RDG/blob/main/images/Impact_of_point_mutationspng)</kbd>
 
 
 A figure depicting a RDG augmented with probabilites of ribosome 'decisions' (initiation, termination, etc.) allowing the prediction of relative synthesis rates of individual proteoforms. In this graph the first start is a non-AUG (CUG) start that is relatively inefficient, only half of the ribosomes recognises it as a start
