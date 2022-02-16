@@ -96,9 +96,9 @@ def build_graphs_from_fasta(file_path, min_lenth=100, start_codons=["ATG", "CTG"
         graphs.append(dg)
     return graphs
 
-# if __name__ == "__main__":
-#     file = open('C:\Users\JackTierney\Downloads\PHPT1_datasets\ncbi_dataset', 'r').readlines()
-#     graphs = build_graphs_from_fasta('C:\Users\JackTierney\Downloads\PHPT1_datasets\ncbi_dataset')
-#     for dg in graphs:
-#         plot(dg)
+if __name__ == "__main__":
+    # graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa', min_lenth=0)
+    graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/test_fasta_multi_sequences.fa')
+    for dg in graphs:
+        plot(dg)
 
