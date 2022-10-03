@@ -119,6 +119,7 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     # ax2.set_yticks(yticks_heights, labels=yticks_labels)
 
     plt.show()
+    return fig, ax1, ax2
 
 
 # if __name__ == "__main__":
