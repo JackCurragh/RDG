@@ -101,6 +101,7 @@ def plot(graph, color_dict=None):
     ax2.set_yticks(yticks_heights, labels=yticks_labels)
 
     plt.show()
+    return fig, ax1, ax2
 
 
 if __name__ == "__main__":
