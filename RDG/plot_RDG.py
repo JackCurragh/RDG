@@ -5,22 +5,38 @@ from matplotlib.gridspec import GridSpec
 
 
 
-def position_graphs_nodes(graph):
+def position_graphs_nodes(graph) -> dict:
     '''
     determine the positioning of rdg nodes from graph structure. 
     This is a hacky method that determines Y axis by node key rather than calculating an optimum based on overlaps
     '''
 
     node_x_positions = [(graph.nodes[node].key, graph.nodes[node].node_start) for node in graph.nodes]
-    pos = {}
-    for i in node_x_positions:
-        pos[i[0]] = (i[1], i[0])
+    pos = {node:(x_position, node) for node, x_position in node_x_positions}
+
+    #hacky way to ensure that the start node is at the bottom of the graph
     
     highest_node = max(list(pos.keys()))
     pos[2] = (pos[2][0], pos[highest_node][1] + 1)
 
     return pos
 
+
+def position_horizontal_paths(graph) -> dict:
+    '''
+    Calculate node positions for RDG with horizontal paths. 
+    '''
+    print(graph.get_orfs())
+
+    pos = position_graphs_nodes(graph)
+    for node in graph.nodes:
+        if graph.nodes[node].node_type in ['stop', '3_prime']:
+            # print(graph.nodes[node])
+            start_node = graph.nodes[node].input_nodes[0]
+            y = pos[start_node][1]
+            pos[node] = (pos[node][0], y)
+    
+    return pos
 
 default_color_dict = {
     'edge_colors':{
@@ -43,7 +59,9 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     G = nx.DiGraph()
     edges = graph.get_edges_from_to()
 
-    pos = position_graphs_nodes(graph)
+    pos = position_horizontal_paths(graph)
+    # pos = position_graphs_nodes(graph)
+    print(pos)
 
     endpoints = graph.get_endpoints()
     startpoints = graph.get_startpoints()
@@ -92,7 +110,7 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1])
 
-    nx.draw_networkx(G, pos=pos, ax=ax1, node_shape='o', node_size=node_size, node_color=node_colors, edge_color=edge_colors, with_labels=False)
+    nx.draw_networkx(G, pos=pos, ax=ax1, node_shape='o', node_size=node_size, node_color=node_colors, edge_color=edge_colors, with_labels=True)
 
     orfs_in_frame = {0:[], 1:[], 2:[]} 
 
@@ -118,7 +136,7 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     ax2.tick_params(bottom=True, labelbottom=True)
     ax2.set_xlim(left=ax1.get_xlim()[0], right=ax1.get_xlim()[1])
     ax2.set_ylim(bottom=10, top=19)
-    # ax2.set_yticks(yticks_heights, labels=yticks_labels)
+    ax2.set_yticks(yticks_heights, labels=yticks_labels)
 
     plt.show()
     return fig, ax1, ax2
@@ -128,7 +146,7 @@ if __name__ == "__main__":
     dg = RDG(name="Example Gene")
     dg.add_open_reading_frame(30, 90)
     dg.add_open_reading_frame(61, 400)
-    dg.add_open_reading_frame(92, 150)
+    # dg.add_open_reading_frame(92, 150)
 
     # dg.add_open_reading_frame(550, 850)
     # dg.add_stop_codon_readthrough(850, 880)
