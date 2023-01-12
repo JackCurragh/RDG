@@ -3,7 +3,7 @@ from RDG import RDG, Node, Edge, plot, save
 from pprint import pprint
 from progress.bar import Bar
 from time import time
-
+from plot_RDG import plot
 
 
 # table = """TTT F      CTT L      ATT I      GTT V
@@ -80,7 +80,6 @@ def build_graphs_from_fasta(file_path, min_lenth=100, start_codons=["ATG", "CTG"
         if line[0] == '>':
             name = line.split(" ")[0][1:]
             sequences[name] = ""
-            
         else:
             sequences[name] += line.strip('\n')
 
@@ -97,8 +96,9 @@ def build_graphs_from_fasta(file_path, min_lenth=100, start_codons=["ATG", "CTG"
     return graphs
 
 if __name__ == "__main__":
-    # graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa', min_lenth=0)
-    graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/test_fasta_multi_sequences.fa')
+    graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa', min_lenth=100)
+    # graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/test_fasta_multi_sequences.fa')
     for dg in graphs:
+        print(dg.get_orfs())
         plot(dg)
 

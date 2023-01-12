@@ -356,6 +356,7 @@ class RDG(object):
         self.add_node(terminal_node)
 
         self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
+        self.add_edge(three_prime, readthrough_codon_key, three_prime_terminal_key)
 
 
     def add_frameshift(self, fs_position, next_stop_codon_position, shift):
