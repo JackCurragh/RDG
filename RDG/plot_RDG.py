@@ -51,6 +51,8 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     translation_stops = graph.get_stop_nodes()
     frameshifts = graph.get_frameshifts()
 
+
+    #assign correct colouring based on frame to each ORF
     G.add_edges_from(edges.keys())
     node_colors = []
     for node in G.nodes():
@@ -122,14 +124,14 @@ def plot(graph, color_dict=default_color_dict, node_size=10, height_ratios=[2, 1
     return fig, ax1, ax2
 
 
-# if __name__ == "__main__":
-#     dg = RDG(name="Example Gene")
-#     dg.add_open_reading_frame(30, 90)
-#     dg.add_open_reading_frame(61, 400)
-#     dg.add_open_reading_frame(92, 150)
+if __name__ == "__main__":
+    dg = RDG(name="Example Gene")
+    dg.add_open_reading_frame(30, 90)
+    dg.add_open_reading_frame(61, 400)
+    dg.add_open_reading_frame(92, 150)
 
-#     # dg.add_open_reading_frame(550, 850)
-#     # dg.add_stop_codon_readthrough(850, 880)
-#     dg.add_frameshift(400, 450, 2)
-#     # print(dg.get_orfs())
-#     plot(dg)
+    # dg.add_open_reading_frame(550, 850)
+    # dg.add_stop_codon_readthrough(850, 880)
+    dg.add_frameshift(400, 450, 2)
+    # print(dg.get_orfs())
+    plot(dg)
