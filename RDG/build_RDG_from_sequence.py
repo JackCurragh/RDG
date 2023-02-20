@@ -89,14 +89,13 @@ def build_graphs_from_fasta(file_path, min_lenth=100, start_codons=["ATG", "CTG"
         dg = RDG(name=sequence, locus_stop=len(sequences[sequence]))
         with Bar('building...') as bar:
             for orf in sorted(orfs):
-                dg.add_open_reading_frame(orf[0], orf[1], reinitiation=reinitiation)
-
+                dg.add_open_reading_frame(orf[0], orf[1], reinitiation=reinitiation, upstream_limit=upstream_limit)
                 bar.next()
         graphs.append(dg)
     return graphs
 
 if __name__ == "__main__":
-    graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa', min_lenth=100)
+    graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa', min_lenth=100, reinitiation=False, readthrough=False, upstream_limit=1)
     # graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/test_fasta_multi_sequences.fa')
     for dg in graphs:
         print(dg.get_orfs())

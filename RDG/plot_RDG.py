@@ -3,6 +3,8 @@ import networkx as nx
 from RDG import RDG, Node, Edge
 from matplotlib.gridspec import GridSpec
 
+from ete3 import Tree
+
 
 
 def position_graphs_nodes(graph) -> dict:
@@ -22,6 +24,7 @@ def position_horizontal_paths(graph) -> dict:
     Calculate node positions for RDG with horizontal paths. 
     '''
     pos = position_graphs_nodes(graph)
+
     for node in graph.nodes:
         # if node is a stop node, move it to the same y position (height) as the start node 
         if graph.nodes[node].node_type in ['stop', '3_prime']:
@@ -57,14 +60,25 @@ default_color_dict = {
 }
 
 
+def get_tree_positioning(graph):
+    '''
+    plot graph data strucuture using ete3 package
+    '''
+    # rooted_tree = ete3.Tree( "((A,B),(C,D));" ) 
+
+    # rooted_tree.render("mytree.png", w=183, units="mm")    
+    # # print(rooted_tree)
+    t = Tree( "((a:1,b:1):1,c:2);" )
+    t.render("mytree.png", w=183, units="mm")
 
 
 def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, height_ratios=[2, 1], label_nodes=False, show_non_coding=False):
     # G = nx.DiGraph()
     G = nx.Graph()
+    get_tree_positioning(graph)
 
+    # store orfs in each frame for plotting the ORF plot. 
     orfs_in_frame = {0:[], 1:[], 2:[]} 
-
     orfs = graph.get_orfs()
     for orf in orfs: 
         if len(orf) == 2:
@@ -74,15 +88,15 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
             orfs_in_frame[orf[1]%3].append((orf[1], orf[2] - orf[1]))
 
 
-
+    # position nodes on xy plane
     pos = position_horizontal_paths(graph)
 
+    # identify feature types for colouring 
     endpoints = graph.get_endpoints()
     startpoints = graph.get_startpoints()
     translation_starts = graph.get_start_nodes()
     translation_stops = graph.get_stop_nodes()
     frameshifts = graph.get_frameshifts()
-    print(translation_starts)
 
     if show_non_coding:
         pass
@@ -90,6 +104,10 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
         graph.remove_edge(1)
 
     edges = graph.get_edges_from_to()
+    if (390, 333) in edges:
+        print(edges[(390, 333)])
+    else:
+        print("not found")
 
     #assign correct colouring based on frame to each ORF
     G.add_edges_from(edges.keys())
@@ -109,6 +127,12 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
             node_colors.append((0,0,0))
     
     edge_colors = []
+    print(len(G.edges))
+    print(len(edges.keys()))
+    print([i for i in edges.keys() if i[0] == 390])
+
+    print([i for i in G.edges if i[0] == 390])
+
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":
             frame = graph.edges[edges[edge]].frame
@@ -124,6 +148,7 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
         else:
             edge_colors.append((0,0,0))
 
+    # set up the figure
     fig = plt.figure()
     fig.suptitle(f"Visualisation of an RDG for {graph.locus}")
 
@@ -131,8 +156,10 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
     ax1 = fig.add_subplot(gs[0])
     ax2 = fig.add_subplot(gs[1])
 
+    # plot the graph
     nx.draw_networkx(G, pos=pos, ax=ax1, node_shape='o', node_size=node_size, node_color=node_colors, width=edge_width, edge_color=edge_colors, with_labels=label_nodes)
 
+    # plot the orf plot
     height = 10
     yticks_heights = []
     yticks_labels = []
@@ -153,10 +180,10 @@ def plot(graph, color_dict=default_color_dict, node_size=50, edge_width=1.5, hei
 
 if __name__ == "__main__":
     dg = RDG(name="Example Gene")
-    dg.add_open_reading_frame(30, 90)
-    dg.add_open_reading_frame(61, 400)
-    dg.add_open_reading_frame(92, 150)
-    dg.add_open_reading_frame(549, 849)
+    dg.add_open_reading_frame(30, 90)#, reinitiation=True, upstream_limit=2)
+    dg.add_open_reading_frame(61, 400)#, reinitiation=True, upstream_limit=2)
+    dg.add_open_reading_frame(92, 150, reinitiation=False, upstream_limit=2)
+    dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
 
     no_node_color_dict = {
         'edge_colors':{
@@ -174,4 +201,4 @@ if __name__ == "__main__":
     }
 
 
-    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=False)
+    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True)
