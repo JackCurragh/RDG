@@ -1,6 +1,6 @@
 
 class Node(object):
-    def __init__(self, key, node_type, coordinates, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
+    def __init__(self, key, node_type, position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
         self.key = key
 
         valid_node_types = ["5_prime", "3_prime", "start", "stop", "frameshift", "readthrough_stop"]
@@ -12,13 +12,13 @@ class Node(object):
         self.output_edges = edges_out
         self.input_nodes = nodes_in 
         self.output_nodes = nodes_out 
-        self.node_start = coordinates
+        self.node_start = position
         self.frame = self.node_start % 3
 
-    def node_key(self):
+    def get_node_key(self):
         return self.key
 
-    def node_type(self):
+    def get_node_type(self):
         return self.node_type
 
 
@@ -68,8 +68,8 @@ class RDG(object):
         transcript_length = locus_stop - self.locus_start
 
         self.nodes = {
-                1:Node(key=1, node_type="5_prime", coordinates=0, edges_out=[1], nodes_out=[2]),
-                2:Node(key=2, node_type="3_prime", coordinates=transcript_length - 1, edges_in=[1], nodes_in=[1])
+                1:Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[2]),
+                2:Node(key=2, node_type="3_prime", position=transcript_length - 1, edges_in=[1], nodes_in=[1])
             }
 
         self.edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
@@ -118,11 +118,11 @@ class RDG(object):
             orf coordinates = 10, 100
         '''
         nodes = {
-            1:Node(key=1, node_type="5_prime", coordinates=0, edges_out=[1], nodes_out=[3]),
-            2:Node(key=2, node_type="3_prime", coordinates=1000 -1, edges_in=[2], nodes_in=[3]),
-            3:Node(key=3, node_type="start", coordinates=10, edges_in=[1], edges_out=[2,3], nodes_in=[1], nodes_out=[2,4]),
-            4:Node(key=4, node_type="stop", coordinates=100, edges_in=[3], edges_out=[4], nodes_in=[3], nodes_out=[5]),
-            5:Node(key=5, node_type="3_prime", coordinates=1000 -1, edges_in=[4], nodes_in=[4])
+            1:Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]),
+            2:Node(key=2, node_type="3_prime", position=1000 -1, edges_in=[2], nodes_in=[3]),
+            3:Node(key=3, node_type="start", position=10, edges_in=[1], edges_out=[2,3], nodes_in=[1], nodes_out=[2,4]),
+            4:Node(key=4, node_type="stop", position=100, edges_in=[3], edges_out=[4], nodes_in=[3], nodes_out=[5]),
+            5:Node(key=5, node_type="3_prime", position=1000 -1, edges_in=[4], nodes_in=[4])
             }
         edges = {
             1:Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 -1)),
@@ -373,7 +373,7 @@ class RDG(object):
 
 
         terminal_node_key = self.get_new_node_key()
-        terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=edge.coordinates[1], edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+        terminal_node = Node(key=terminal_node_key, node_type="3_prime", position=edge.coordinates[1], edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
 
         edge_key = self.get_new_edge_key()
         three_prime = Edge(key=edge_key, edge_type="untranslated", from_node=stop_node.key, to_node=terminal_node.key, coordinates=three_prime_edge_coords)
@@ -490,10 +490,10 @@ class RDG(object):
         
         for edge, upstream_node in clashing_edges:
             node_key = self.get_new_node_key()
-            start_node = Node(key=node_key, node_type="start", coordinates=start_codon_position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+            start_node = Node(key=node_key, node_type="start", position=start_codon_position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
 
             node_key = node_key + 1
-            stop_node = Node(key=node_key, node_type="stop", coordinates=stop_codon_position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
+            stop_node = Node(key=node_key, node_type="stop", position=stop_codon_position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[])
             if reinitiation or not self.check_translation_upstream(upstream_node, upstream_limit=upstream_limit):
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
 
@@ -512,7 +512,7 @@ class RDG(object):
         edge_key = self.get_new_edge_key()
         edge_key2 = edge_key + 1
 
-        new_stop_node = Node(key=node_key, node_type="stop", coordinates=next_stop_codon_position, edges_in=[edge_key], edges_out=[edge_key2], nodes_in=[readthrough_codon_key], nodes_out=[terminal_node_key])
+        new_stop_node = Node(key=node_key, node_type="stop", position=next_stop_codon_position, edges_in=[edge_key], edges_out=[edge_key2], nodes_in=[readthrough_codon_key], nodes_out=[terminal_node_key])
         self.add_node(new_stop_node)
 
         coding = Edge(key=edge_key, edge_type="translated", from_node=readthrough_codon_key, to_node=new_stop_node.key, coordinates=(self.nodes[readthrough_codon_key].node_start, next_stop_codon_position))
@@ -525,7 +525,7 @@ class RDG(object):
         three_prime = Edge(key=edge_key2, edge_type="untranslated", from_node=new_stop_node.key, to_node=terminal_node_key, coordinates=(new_stop_node.node_start, self.nodes[three_prime_terminal_key].node_start))
 
         terminal_node_key = self.get_new_node_key()
-        terminal_node = Node(key=terminal_node_key, node_type="3_prime", coordinates=self.nodes[three_prime_terminal_key].node_start, edges_in=[edge_key2], edges_out=[], nodes_in=[new_stop_node.key], nodes_out=[])
+        terminal_node = Node(key=terminal_node_key, node_type="3_prime", position=self.nodes[three_prime_terminal_key].node_start, edges_in=[edge_key2], edges_out=[], nodes_in=[new_stop_node.key], nodes_out=[])
         self.add_node(terminal_node)
 
         self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
