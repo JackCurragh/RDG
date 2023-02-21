@@ -15,13 +15,6 @@ class Node(object):
         self.node_start = coordinates
         self.frame = self.node_start % 3
 
-
-    def add_neighbour(self, neighbour, weight=0):
-        self.connected[neighbour] = weight
-
-    def get_connections(self):
-        return self.connected.keys()
-
     def node_key(self):
         return self.key
 
