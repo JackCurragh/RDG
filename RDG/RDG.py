@@ -1,3 +1,21 @@
+'''
+This script contains the RDG class and associated classes for nodes and edges.
+
+The RDG class is the main class for the RDG package. It contains methods for
+creating, loading, and saving RDGs. It also contains methods for adding and
+removing nodes and edges from the graph.
+
+The Node class is a class for nodes in the RDG. It contains methods for
+getting information about the node.
+
+The Edge class is a class for edges in the RDG. It contains methods for
+getting information about the edge.
+
+This is the first test implementation of the RDG concept and is primarily intended
+for testing and development. 
+
+'''
+
 
 class Node(object):
     def __init__(self, key, node_type, position, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
@@ -30,22 +48,7 @@ class Edge(object):
         self.to_node = to_node
         self.coordinates = coordinates
 
-    def edge_key(self):
-        return self.key
-
-    def edge_type(self):
-        return self.edge_type
-
-    def from_node(self):
-        return self.from_node
-
-    def to_node(self):
-        return self.to_node 
-    
-    def coordinates(self):
-        return self.coordinates
-
-    def frame(self):
+    def get_frame(self):
         return self.coordinates[0] % 3 
 
 
