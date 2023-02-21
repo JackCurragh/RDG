@@ -1,45 +1,55 @@
 class RDG(object):
-    def __init__(self, locus_stop=1000, nodes=None, edges=None, name=None):
+    def __init__(self, locus_stop: int=1000, name: str=None):
         """
-        initialise a fresh empty RDG 
+        Initialise a fresh RDG object 
+
+        Parameters:
+        -----------
+        locus_stop: int length of the locus in bp
+        name: str name of the locus
+
         """
         self.locus = name
         self.locus_start = 0
         self.locus_stop = locus_stop
 
-        if nodes: 
-            raise ValueError("A value for 'nodes' was provided. If you want to specify from an existing structure use RDG.load()")
-        if edges: 
-            raise ValueError("A value for 'edges' was provided. If you want to specify from an existing structure use RDG.load()")
-
         transcript_length = locus_stop - self.locus_start
 
-        nodes = {
+        self.nodes = {
                 1:Node(key=1, node_type="5_prime", coordinates=0, edges_out=[1], nodes_out=[2]),
-                2:Node(key=2, node_type="3_prime", coordinates=transcript_length -1, edges_in=[1], nodes_in=[1])
+                2:Node(key=2, node_type="3_prime", coordinates=transcript_length - 1, edges_in=[1], nodes_in=[1])
             }
 
-        edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
+        self.edges = {1: Edge(1, "untranslated", from_node=1, to_node=2, coordinates=(1, transcript_length -1))}
 
 
-        self.edges = edges
+    def Load(self, locus_name: str="unnamed", locus_start: int=0, locus_stop: int=1000, nodes: dict=None, edges: dict=None):
+        """
+        Create a RDG from the given paramaters 
+
+        Parameters:
+        -----------
+        locus_name: str name of the locus
+        locus_start: int start of the locus in bp
+        locus_stop: int stop of the locus in bp
+        nodes: dict of nodes. Keys are node keys, values are Node objects
+        edges: dict of edges. Keys are edge keys, values are Edge objects
+
+        Returns:
+        --------
+        RDG object
+        """
+
+        if not nodes:
+            raise ValueError("nodes and edges must be provided to load a graph. If you want to create a new graph, use RDG()")
+
         self.nodes = nodes
-
-
-    def Load(self, locus_name="unnamed", locus_start=0, locus_stop=1000, nodes=None, edges=None):
-        """
-        create a RDG from the given paramaters 
-        """
-        if nodes:
-            self.nodes = nodes
-
-        if edges:
-            self.edges = edges 
-        
+        self.edges = edges 
         self.locus = locus_name
         self.locus_start = locus_start
         self.locus_stop = locus_stop
         return self
+
 
     def load_example(self):
         '''
@@ -65,9 +75,9 @@ class RDG(object):
         return g
 
 
-    def vertices(self):
+    def get_nodes(self):
         """
-        return a list of the vertices/nodes from the graph
+        Return a list of the nodes from the graph
         """
         return list(self.nodes.keys())
 
