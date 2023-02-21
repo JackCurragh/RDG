@@ -16,6 +16,21 @@ def test_get_edges_from_to():
     edges = g.get_edges_from_to()    
     assert sorted(edges) == sorted([(1,3),(3,4),(4,5),(3,2)])
 
+def test_get_new_node_key():
+    g = RDG()
+    g = RDG.load_example(g)
+    assert g.get_new_node_key() == 6
+
+def test_get_new_edge_key():
+    g = RDG()
+    g = RDG.load_example(g)
+    assert g.get_new_edge_key() == 5
+
+def test_get_key_from_position():
+    g = RDG()
+    g = RDG.load_example(g)
+    assert g.get_key_from_position(10, node_type="start") == 3
+
 def test_get_startpoints():
     g = RDG()
     g = RDG.load_example(g)
