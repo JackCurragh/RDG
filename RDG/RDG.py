@@ -42,6 +42,9 @@ class RDG(object):
 
         if not nodes:
             raise ValueError("nodes and edges must be provided to load a graph. If you want to create a new graph, use RDG()")
+        
+        if locus_stop < locus_start:
+            raise ValueError("locus_stop must be greater than locus_start")
 
         self.nodes = nodes
         self.edges = edges 
@@ -53,9 +56,14 @@ class RDG(object):
 
     def load_example(self):
         '''
-        load a basic graph with one ORF 
-        locus length = 1000
-        orf coordinates = 10, 100
+        Load a basic graph with one ORF 
+
+        Returns:
+        --------
+        RDG object
+        with:
+            locus length = 1000
+            orf coordinates = 10, 100
         '''
         nodes = {
             1:Node(key=1, node_type="5_prime", coordinates=0, edges_out=[1], nodes_out=[3]),
@@ -75,34 +83,46 @@ class RDG(object):
         return g
 
 
-    def get_nodes(self):
+    def get_nodes(self) -> list:
         """
         Return a list of the nodes from the graph
+
+        Returns:
+        --------
+        list of Node ids
         """
         return list(self.nodes.keys())
 
 
-    def get_edges(self):
+    def get_edges(self) -> list:
         '''
-        return a list of keys of edges in the graph
+        Return a list of keys of edges in the graph
+
+        Returns:
+        --------
+        list of Edge ids
         '''
         return list(self.edges.keys())
 
 
-    def get_edges_from_to(self):
+    def get_edges_from_to(self) -> dict:
         '''
-        return a list of edges (from, to) in the graph
+        Return a dict of edges with keys of the form (from_node_id, to_node_id)
+
+        Returns:
+        --------
+        dict Keys are tuples of the form (from_node_id, to_node_id) Values are edge ids
         '''
-        from_to = {} 
-        for edge in self.edges.keys():
-            from_to[(self.edges[edge].from_node, self.edges[edge].to_node)] = edge
-
-        return from_to
+        return {(self.edges[edge].from_node, self.edges[edge].to_node): edge for edge in self.edges.keys()}
 
 
-    def get_new_node_key(self):
+    def get_new_node_key(self) -> int:
         """
-        check the nodes to find the lowest available key
+        Return the lowest available node key
+
+        Returns:
+        --------
+        int: new node key that is not already used
         """
         keys = self.nodes.keys()
         if len(keys) > 0:
@@ -111,9 +131,13 @@ class RDG(object):
             return 1
 
 
-    def get_new_edge_key(self):
+    def get_new_edge_key(self) -> int:
         """
-        check the edges to find the lowest available key
+        Return the lowest available edge key
+
+        Returns:
+        --------
+        int: new edge key that is not already used
         """
         keys = self.edges.keys()
         if len(keys) > 0:
@@ -121,14 +145,15 @@ class RDG(object):
         else:
             return 1
 
-    def get_key_from_position(self, position, node_type):
+
+    def get_key_from_position(self, position, node_type) -> int:
         '''
-        return the node key for the node of specified type at the stated position 
+        Return the node key for the node of specified type at the stated position 
         '''
         for node in self.nodes:
             if self.nodes[node].node_start == position and self.nodes[node].node_type == node_type:
                 return node
-        raise ValueError(f"There is no stop codon at the locus ({position}) specified for readthrough")
+        raise ValueError(f"There is no node at the locus ({position}) of type '{node_type}'")
 
 
 
@@ -646,6 +671,11 @@ class RDG(object):
 class Node(object):
     def __init__(self, key, node_type, coordinates, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
         self.key = key
+
+        valid_node_types = ["5_prime", "3_prime", "start", "stop", "frameshift", "readthrough_stop"]
+        if node_type not in valid_node_types:
+            raise ValueError(f"Node type ({node_type}) not valid. Valid types are {valid_node_types}")
+        
         self.node_type = node_type
         self.input_edges = edges_in
         self.output_edges = edges_out
