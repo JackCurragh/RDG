@@ -1,6 +1,11 @@
 from RDG import RDG, Node, Edge
 
 
+# Set of tests to check RDG __init__ and basic properties of the graph
+
+def test_rdg_initialization():
+    assert RDG()
+
 def test_basic_edges():
     assert len(RDG().edges) == 1
 
