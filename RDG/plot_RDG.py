@@ -109,12 +109,11 @@ def plot(
         pass
     else:
         graph.remove_edge(1)
+    
+    
+    graph.remove_node(21)
 
     edges = graph.get_edges_from_to()
-    if (390, 333) in edges:
-        print(edges[(390, 333)])
-    else:
-        print("not found")
 
     # assign correct colouring based on frame to each ORF
     G.add_edges_from(edges.keys())
@@ -134,11 +133,6 @@ def plot(
             node_colors.append((0, 0, 0))
 
     edge_colors = []
-    print(len(G.edges))
-    print(len(edges.keys()))
-    print([i for i in edges.keys() if i[0] == 390])
-
-    print([i for i in G.edges if i[0] == 390])
 
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":

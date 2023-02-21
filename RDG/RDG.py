@@ -364,6 +364,24 @@ class RDG(object):
         """
         self.nodes[node.key] = node
 
+    def remove_node(self, node_key: int):
+        """
+        Remove the node with the given key from the graph also removing references from adjacent edges
+
+        Does not remove edges that are no longer connected to any other nodes
+
+        Parameters:
+        -----------
+        node_key: int key of the node to remove
+
+        """
+        if node_key in self.nodes:
+            for edge in sorted(self.nodes[node_key].output_edges):
+                self.remove_edge(edge)
+            for edge in sorted(self.nodes[node_key].input_edges):
+                self.remove_edge(edge)
+            self.nodes.pop(node_key)
+
     def update_edge(self, edge_key, new_from_node, new_to_node, new_coordinates):
         """
         Update the edge with the given key with the new from and to nodes and coordinates
