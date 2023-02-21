@@ -1,3 +1,62 @@
+
+class Node(object):
+    def __init__(self, key, node_type, coordinates, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
+        self.key = key
+
+        valid_node_types = ["5_prime", "3_prime", "start", "stop", "frameshift", "readthrough_stop"]
+        if node_type not in valid_node_types:
+            raise ValueError(f"Node type ({node_type}) not valid. Valid types are {valid_node_types}")
+        
+        self.node_type = node_type
+        self.input_edges = edges_in
+        self.output_edges = edges_out
+        self.input_nodes = nodes_in 
+        self.output_nodes = nodes_out 
+        self.node_start = coordinates
+        self.frame = self.node_start % 3
+
+
+    def add_neighbour(self, neighbour, weight=0):
+        self.connected[neighbour] = weight
+
+    def get_connections(self):
+        return self.connected.keys()
+
+    def node_key(self):
+        return self.key
+
+    def node_type(self):
+        return self.node_type
+
+
+class Edge(object):
+    def __init__(self, key, edge_type, from_node, to_node, coordinates):
+        self.key = key
+        self.edge_type = edge_type
+        self.from_node = from_node
+        self.to_node = to_node
+        self.coordinates = coordinates
+
+    def edge_key(self):
+        return self.key
+
+    def edge_type(self):
+        return self.edge_type
+
+    def from_node(self):
+        return self.from_node
+
+    def to_node(self):
+        return self.to_node 
+    
+    def coordinates(self):
+        return self.coordinates
+
+    def frame(self):
+        return self.coordinates[0] % 3 
+
+
+
 class RDG(object):
     def __init__(self, locus_stop: int=1000, name: str=None):
         """
@@ -149,17 +208,41 @@ class RDG(object):
     def get_key_from_position(self, position, node_type) -> int:
         '''
         Return the node key for the node of specified type at the stated position 
+
+        Parameters:
+        -----------
+        position: int position in the locus
+        node_type: str type of node to look for
+
+        Returns:
+        --------
+        int: node key
+
         '''
-        for node in self.nodes:
-            if self.nodes[node].node_start == position and self.nodes[node].node_type == node_type:
-                return node
-        raise ValueError(f"There is no node at the locus ({position}) of type '{node_type}'")
+
+        valid_nodes = {node: self.nodes[node] for node in self.nodes if self.nodes[node].node_type == node_type}
+
+        if valid_nodes == {}:
+            raise ValueError(f"There are no nodes of type '{node_type}' in the graph")
+        else:
+            for node in valid_nodes:
+                if valid_nodes[node].node_start == position:
+                    return node
+            raise ValueError(f"There is no node of type '{node_type}' at position {position}")
+
 
 
 
     def remove_edge(self, edge_key):
         '''
-        remove the edge with the given key from the graph Also removing references from adjacent nodes 
+        Remove the edge with the given key from the graph also removing references from adjacent nodes 
+
+        Does not remove nodes that are no longer connected to any other nodes
+
+        Parameters:
+        -----------
+        edge_key: int key of the edge to remove
+
         '''
         from_node = self.edges[edge_key].from_node
         to_node = self.edges[edge_key].to_node
@@ -181,7 +264,14 @@ class RDG(object):
 
     def add_edge(self, edge, from_node_key, to_node_key):
         '''
-        reintroduce edges and references with the new edge 
+        Introduce edges and references with the a edge 
+
+        Parameters:
+        -----------
+        edge: Edge object to add
+        from_node_key: int key of the node the edge is coming from
+        to_node_key: int key of the node the edge is going to
+
         '''
         self.nodes[from_node_key].output_edges.append(edge.key)
         self.nodes[from_node_key].output_nodes.append(to_node_key)
@@ -195,12 +285,31 @@ class RDG(object):
 
 
     def add_node(self, node):
+        '''
+        Introduce nodes and references with the a node. 
+
+        The associated edges must be added separately
+
+        Parameters:
+        -----------
+        node: Node object to add
+
+        '''
         self.nodes[node.key] = node
 
 
     def update_edge(self, edge_key, new_from_node, new_to_node, new_coordinates):
         '''
-        functionality for changing 
+        Update the edge with the given key with the new from and to nodes and coordinates
+
+        Parameters:
+        -----------
+        edge_key: int key of the edge to update
+        new_from_node: int key of the new from node
+        new_to_node: int key of the new to node
+        new_coordinates: tuple of the form (start, end) of the new coordinates
+
+        notes:
         when inserting an orf into an untranslated edge we update the untranslated edge to now start at the new start codon instead
 
         '''
@@ -219,8 +328,6 @@ class RDG(object):
             
             if new_from_node not in self.nodes[new_from_node].output_nodes:
                 self.nodes[new_from_node].output_nodes.append(new_to_node)
-        
-
 
         if old_to_node != new_to_node:
             if edge_key in self.nodes[old_to_node].input_edges:
@@ -234,13 +341,26 @@ class RDG(object):
 
             if new_from_node in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.remove(new_from_node)
+
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
 
 
-    def insert_ORF(self, edge, start_node, stop_node):
+    def insert_ORF(self, edge: Edge, start_node: Node, stop_node: Node):
         '''
-        handle inserting node into just one edge including down path 
+        Handle inserting node into just one edge including down path 
+        
+        Parameters:
+        -----------
+        edge: Edge object to insert into
+        start_node: Node object of the start codon for the ORF
+        stop_node: Node object of the stop codon for the ORF
+
+        Notes:
+        ------
+        Results in the creation of three new edges and two new nodes for the coding branch
+        The non-coding branch is updated to now start at the start codon
+
         '''
         five_prime_edge_coords = (edge.coordinates[0], start_node.node_start - 1)
         coding_edge_coords = (start_node.node_start, stop_node.node_start)
@@ -271,9 +391,17 @@ class RDG(object):
         self.update_edge(edge.key, start_node.key, edge.to_node, (start_node.node_start, self.nodes[edge.to_node].node_start))
 
 
-    def is_input_edge_translated(self, node):
+    def is_input_edge_translated(self, node: int) -> bool:
         '''
-        return boolean as to whether an edge entering this node is translated 
+        Return boolean as to whether an edge entering this node is translated 
+
+        Parameters:
+        -----------
+        node: int key of the node to check
+
+        Returns:
+        --------
+        boolean: True if an edge entering this node is translated, False otherwise
         '''
         input_edges = self.nodes[node].input_edges
         boolean = False
@@ -284,9 +412,17 @@ class RDG(object):
         return boolean
 
 
-    def root_to_node_of_acyclic_node_path(self, node):
+    def root_to_node_of_acyclic_node_path(self, node) -> list:
         '''
-        return path from root to given node as a list of node keys
+        Return path from root to given node as a list of node keys
+
+        Parameters:
+        -----------
+        node: int key of the node to check
+
+        Returns:
+        --------
+        path: list of node keys from root to given node
         '''
         path = [node]
         reached_root = False
@@ -298,12 +434,21 @@ class RDG(object):
                 reached_root = True
             else:
                 node = in_node
-        return(path[::-1])
+        return path[::-1]
 
 
     def root_to_node_of_acyclic_edge_path(self, node):
         '''
-        return path from root to given node as a list of edge keys
+        Return path from root to given node as a list of edge keys
+
+        Parameters:
+        -----------
+        node: int key of the node to check
+
+        Returns:
+        --------
+        path: list of edge keys from root to given node
+
         '''
         if self.nodes[node].input_nodes == []:
             reached_root = True
@@ -667,64 +812,6 @@ class RDG(object):
 
 
 
-
-class Node(object):
-    def __init__(self, key, node_type, coordinates, edges_in=[], edges_out=[], nodes_in=[], nodes_out=[]):
-        self.key = key
-
-        valid_node_types = ["5_prime", "3_prime", "start", "stop", "frameshift", "readthrough_stop"]
-        if node_type not in valid_node_types:
-            raise ValueError(f"Node type ({node_type}) not valid. Valid types are {valid_node_types}")
-        
-        self.node_type = node_type
-        self.input_edges = edges_in
-        self.output_edges = edges_out
-        self.input_nodes = nodes_in 
-        self.output_nodes = nodes_out 
-        self.node_start = coordinates
-        self.frame = self.node_start % 3
-
-
-    def add_neighbour(self, neighbour, weight=0):
-        self.connected[neighbour] = weight
-
-    def get_connections(self):
-        return self.connected.keys()
-
-    def node_key(self):
-        return self.key
-
-    def node_type(self):
-        return self.node_type
-
-
-
-
-class Edge(object):
-    def __init__(self, key, edge_type, from_node, to_node, coordinates):
-        self.key = key
-        self.edge_type = edge_type
-        self.from_node = from_node
-        self.to_node = to_node
-        self.coordinates = coordinates
-
-    def edge_key(self):
-        return self.key
-
-    def edge_type(self):
-        return self.edge_type
-
-    def from_node(self):
-        return self.from_node
-
-    def to_node(self):
-        return self.to_node 
-    
-    def coordinates(self):
-        return self.coordinates
-
-    def frame(self):
-        return self.coordinates[0] % 3 
 
 
 
