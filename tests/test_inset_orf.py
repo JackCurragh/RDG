@@ -108,3 +108,10 @@ def test_add_open_reading_frame():
     branch_points = g.get_branch_points()
 
     assert len(branch_points) == 2
+
+# def test_add_stop_codon_readthrough():
+#     g = RDG()
+#     g = RDG.load_example(g)
+
+#     g.add_stop_codon_readthrough(100, 150)
+#     assert len(g.nodes) == 8

@@ -31,7 +31,7 @@ def position_horizontal_paths(graph) -> dict:
         if graph.nodes[node].node_type in ["stop", "3_prime"]:
             upstream_node = graph.nodes[node].input_nodes[0]
             if graph.nodes[upstream_node].node_type in ["start", "5_prime", "stop"]:
-                pos[node] = (pos[node][0], pos[upstream_node][1])
+                pos[node] = (pos[node][0], pos[upstream_node][1]+1)
             else:
                 pos[node] = (pos[node][0], pos[upstream_node][1] + 1)
 
@@ -39,12 +39,13 @@ def position_horizontal_paths(graph) -> dict:
     start_nodes = [
         node for node in graph.nodes if graph.nodes[node].node_type == "start"
     ]
-    pos[1] = (pos[1][0], min([pos[node][1] for node in start_nodes]))
+    if start_nodes not in [[], None]:
+        pos[1] = (pos[1][0], min([pos[node][1] for node in start_nodes])-1)
 
     # hacky way to ensure that the non-coding path is at the top of the graph
 
     highest_node = max(list(pos.keys()))
-    pos[2] = (pos[2][0], pos[highest_node][1] + 1)
+    # pos[2] = (pos[2][0], pos[highest_node][1] + 1)
     return pos
 
 
@@ -81,8 +82,10 @@ def plot(
     label_nodes=False,
     show_non_coding=False,
 ):
-    # G = nx.DiGraph()
-    G = nx.Graph()
+    
+    # The networkx graph must either be directed or the edges must be sorted before adding to graph
+    G = nx.DiGraph() 
+
     get_tree_positioning(graph)
 
     # store orfs in each frame for plotting the ORF plot.
@@ -111,12 +114,11 @@ def plot(
         graph.remove_edge(1)
     
     
-    graph.remove_node(21)
-
     edges = graph.get_edges_from_to()
 
     # assign correct colouring based on frame to each ORF
     G.add_edges_from(edges.keys())
+
     node_colors = []
     for node in G.nodes():
         if node in startpoints:
@@ -136,7 +138,7 @@ def plot(
 
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":
-            frame = graph.edges[edges[edge]].frame
+            frame = graph.edges[edges[edge]].get_frame()
         else:
             frame = None
 
@@ -168,6 +170,8 @@ def plot(
         width=edge_width,
         edge_color=edge_colors,
         with_labels=label_nodes,
+        alpha=0.3,
+        font_size=20,
     )
 
     # plot the orf plot
@@ -197,12 +201,6 @@ def plot(
 
 
 if __name__ == "__main__":
-    dg = RDG(name="Example Gene")
-    dg.add_open_reading_frame(30, 90)  # , reinitiation=True, upstream_limit=2)
-    dg.add_open_reading_frame(61, 400)  # , reinitiation=True, upstream_limit=2)
-    dg.add_open_reading_frame(92, 150)  # , reinitiation=False, upstream_limit=2)
-    dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
-
     no_node_color_dict = {
         "edge_colors": {"frame0": (1, 0, 0), "frame1": (0, 1, 0), "frame2": (0, 0, 1)},
         "node_colors": {
@@ -213,5 +211,20 @@ if __name__ == "__main__":
             "frameshift": (0, 0, 0),
         },
     }
+    dg = RDG(name="Example Gene")
+    # dg.add_open_reading_frame(30, 90)  # , reinitiation=True, upstream_limit=2)
+    # dg.add_open_reading_frame(61, 400)  # , reinitiation=True, upstream_limit=2)
+    # dg.add_open_reading_frame(92, 150)  # , reinitiation=False, upstream_limit=2)
+    # dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
+    # dg = dg.load_example()
 
-    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True)
+    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
+
+    dg.add_open_reading_frame(30, 90)
+    # dg.add_stop_codon_readthrough(100, 132*3)
+    # print(len(dg.edges))
+    print(dg.root_to_node_of_acyclic_node_path(2))
+
+
+
+    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)

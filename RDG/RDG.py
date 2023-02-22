@@ -272,7 +272,7 @@ class RDG(object):
         else:
             return 1
 
-    def get_key_from_position(self, position, node_type) -> int:
+    def get_key_from_position(self, position, node_type) -> list:
         """
         Return the node key for the node of specified type at the stated position
 
@@ -292,16 +292,19 @@ class RDG(object):
             for node in self.nodes
             if self.nodes[node].node_type == node_type
         }
-
+        nodes = []
         if valid_nodes == {}:
             raise ValueError(f"There are no nodes of type '{node_type}' in the graph")
         else:
             for node in valid_nodes:
                 if valid_nodes[node].node_start == position:
-                    return node
-            raise ValueError(
-                f"There is no node of type '{node_type}' at position {position}"
-            )
+                    nodes.append(node)
+            if nodes:
+                return nodes
+            else:
+                raise ValueError(
+                    f"There is no node of type '{node_type}' at position {position}"
+                )
 
     def remove_edge(self, edge_key):
         """
@@ -423,8 +426,8 @@ class RDG(object):
             if old_from_node in self.nodes[old_to_node].input_nodes:
                 self.nodes[old_to_node].input_nodes.remove(old_from_node)
 
-            if new_from_node in self.nodes[new_to_node].input_nodes:
-                self.nodes[new_to_node].input_nodes.remove(new_from_node)
+            if new_from_node not in self.nodes[new_to_node].input_nodes:
+                self.nodes[new_to_node].input_nodes.append(new_from_node)
 
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
@@ -520,7 +523,6 @@ class RDG(object):
         for edge in input_edges:
             if self.edges[edge].edge_type == "translated":
                 boolean = True
-
         return boolean
 
     def root_to_node_of_acyclic_node_path(self, node) -> list:
@@ -576,10 +578,19 @@ class RDG(object):
                 node = in_node
         return path[::-1]
 
-    def check_translation_upstream(self, from_node, upstream_limit=1):
+    def check_translation_upstream(self, from_node: int, upstream_limit: int=1) -> bool:
         """
         look upstream of an edges from node and see if any edges are of type 'translated'
         used in reinit functionality. Upstream limit refers to the number of ORFs allowed upstream. ie. can the be multiple reinitiation events or just one etc
+
+        Parameters:
+        -----------
+        from_node: int key of the node to check
+        upstream_limit: int number of ORFs allowed upstream
+
+        Returns:
+        --------
+        boolean: True if the number of translated edges upstream is greater than the upstream limit, False otherwise
         """
         edge_path_to_node_from_root = self.root_to_node_of_acyclic_edge_path(from_node)
         number_of_translated_regions = 0
@@ -593,13 +604,29 @@ class RDG(object):
 
     def add_open_reading_frame(
         self,
-        start_codon_position,
-        stop_codon_position,
-        reinitiation=False,
-        upstream_limit=0,
+        start_codon_position: int,
+        stop_codon_position: int,
+        reinitiation: bool=False,
+        upstream_limit: int=0,
     ):
         """
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
+        First finds edges that clash with the new ORF (i.e the start codon is within the range of the edge)
+        Clashes are only considered if the edge is not of type 'translated'
+        For each clash it will insert an ORF. To do so it will create:
+            a new start node: the start codon position
+            a new stop node: the stop codon position
+            a new terminal node: the 3' end of the path
+            a new coding edge: from the start node to the stop node
+            2 new 3' edges. One from the stop node to the new terminal node and one from the start node to the old terminal node
+
+        Parameters:
+        -----------
+        start_codon_position: int position of the start codon
+        stop_codon_position: int position of the stop codon
+        reinitiation: bool whether or not this is allowed to be a reinitiation event
+        upstream_limit: int number of ORFs allowed upstream
+
         """
         exisiting_edges = self.get_edges()
         clashing_edges = []
@@ -642,75 +669,84 @@ class RDG(object):
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
 
     def add_stop_codon_readthrough(
-        self, readthrough_codon_position, next_stop_codon_position
+        self, readthrough_codon_position: int, next_stop_codon_position: int
     ):
         """
         Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
 
+        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node 
+        go to new stop node and a old terminal node. 
+
+        Parameters:
+        -----------
+        readthrough_codon_position: int position of the stop codon
+        next_stop_codon_position: int position of the next stop codon
+
         """
-        readthrough_codon_key = self.get_key_from_position(
+        readthrough_codon_keys = self.get_key_from_position(
             readthrough_codon_position, "stop"
         )
-        three_prime_terminal_key = self.nodes[readthrough_codon_key].output_nodes[0]
 
-        node_key = self.get_new_node_key()
-        terminal_node_key = node_key + 1
+        for readthrough_key in readthrough_codon_keys:
+            # Handle coding edge from old stop to new stop
+            # old stop is readthrough_key
+            # new stop is new_stop_node_key
+            new_stop_node_key = self.get_new_node_key()
+            new_stop_node = Node(
+                key=new_stop_node_key,
+                node_type="stop",
+                position=next_stop_codon_position,
+            )
+            self.add_node(new_stop_node)
 
-        edge_key = self.get_new_edge_key()
-        edge_key2 = edge_key + 1
+            coding_edge_key = self.get_new_edge_key()
+            coding = Edge(
+                key=coding_edge_key,
+                edge_type="translated",
+                from_node=readthrough_key,
+                to_node=new_stop_node.key,
+                coordinates=(
+                    self.nodes[readthrough_key].node_start,
+                    next_stop_codon_position,
+                ),
+            )
+            self.add_edge(coding, readthrough_key, new_stop_node.key)
 
-        new_stop_node = Node(
-            key=node_key,
-            node_type="stop",
-            position=next_stop_codon_position,
-            edges_in=[edge_key],
-            edges_out=[edge_key2],
-            nodes_in=[readthrough_codon_key],
-            nodes_out=[terminal_node_key],
-        )
-        self.add_node(new_stop_node)
 
-        coding = Edge(
-            key=edge_key,
-            edge_type="translated",
-            from_node=readthrough_codon_key,
-            to_node=new_stop_node.key,
-            coordinates=(
-                self.nodes[readthrough_codon_key].node_start,
-                next_stop_codon_position,
-            ),
-        )
-        self.add_edge(coding, readthrough_codon_key, new_stop_node.key)
+            terminal_node_key = self.get_new_node_key()
+            three_prime_terminal_key = self.nodes[readthrough_key].output_nodes[0]
 
-        self.nodes[readthrough_codon_key].output_edges.append(coding.key)
-        self.nodes[readthrough_codon_key].output_nodes.append(new_stop_node.key)
-        self.nodes[readthrough_codon_key].node_type = "readthrough_stop"
+            terminal_node_key = self.get_new_node_key()
+            terminal_node = Node(
+                key=terminal_node_key,
+                node_type="3_prime",
+                position=self.nodes[three_prime_terminal_key].node_start,
+                # nodes_in=[],
+                # nodes_out=[],
+                # edges_in=[],
+                # edges_out=[],
+            )
+            self.add_node(terminal_node)
 
-        three_prime = Edge(
-            key=edge_key2,
-            edge_type="untranslated",
-            from_node=new_stop_node.key,
-            to_node=terminal_node_key,
-            coordinates=(
-                new_stop_node.node_start,
-                self.nodes[three_prime_terminal_key].node_start,
-            ),
-        )
+            print(self.nodes[7].input_nodes)
 
-        terminal_node_key = self.get_new_node_key()
-        terminal_node = Node(
-            key=terminal_node_key,
-            node_type="3_prime",
-            position=self.nodes[three_prime_terminal_key].node_start,
-            edges_in=[edge_key2],
-            edges_out=[],
-            nodes_in=[new_stop_node.key],
-            nodes_out=[],
-        )
-        self.add_node(terminal_node)
+            new_3_prime_edge = self.get_new_edge_key()
+            three_prime = Edge(
+                key=new_3_prime_edge,
+                edge_type="untranslated",
+                from_node=new_stop_node.key,
+                to_node=terminal_node_key,
+                coordinates=(
+                    new_stop_node.node_start,
+                    self.nodes[three_prime_terminal_key].node_start,
+                ),
+            )
+            print(self.nodes[7].input_nodes)
 
-        self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
-        self.add_edge(three_prime, readthrough_codon_key, three_prime_terminal_key)
+
+            self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
+
+            print(self.nodes[7].input_nodes)
 
     def add_frameshift(self, fs_position, next_stop_codon_position, shift):
         """
