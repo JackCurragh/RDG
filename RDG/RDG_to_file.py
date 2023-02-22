@@ -3,16 +3,25 @@ from sqlitedict import SqliteDict
 
 
 def to_dict(obj):
+    '''
+    Recursively convert a class to a dictionary
+
+    Parameters
+    ----------
+    obj : class
+        The class to convert to a dictionary
+
+    Returns 
+    -------
+    output : dict
+    '''
     output = {}
     for key, item in obj.__dict__.items():
         if isinstance(item, list):
             l = []
             for item in item:
-                if isinstance(item, int):
-                    l.append(item)
-                else:
-                    d = to_dict(item)
-                    l.append(d)
+                l.append(item)
+
             output[key] = l
         else:
             output[key] = item
@@ -21,18 +30,26 @@ def to_dict(obj):
 
 
 def save(graph, save_file):
+    '''
+    Save a graph to a file
 
-    transcript = graph.locus
-    graph_dict = {transcript: {}}
+    Parameters
+    ----------
+    graph : RDG
+
+    save_file : str
+        The name of the file to save to (should end in .sqlite)
+    '''
+    graph_dict = {graph.locus: {}}
     for attr, value in graph.__dict__.items():
-        if attr not in graph_dict[transcript]:
-            graph_dict[transcript][attr] = {}
+        if attr not in graph_dict[graph.locus]:
+            graph_dict[graph.locus][attr] = {}
 
         if isinstance(value, dict):
             for key in value:
-                graph_dict[transcript][attr][key] = to_dict(value[key])
+                graph_dict[graph.locus][attr][key] = to_dict(value[key])
         else:
-            graph_dict[transcript][attr] = value
+            graph_dict[graph.locus][attr] = value
 
     try:
         with SqliteDict(save_file) as output_dict:
@@ -40,11 +57,22 @@ def save(graph, save_file):
                 output_dict[key] = graph_dict[key]
                 output_dict.commit()
 
-    except Exception as ex:
-        print("Error during storing data (Possibly unsupported):", ex)
+    except:
+        raise Exception("Error during storing data (Possibly unsupported):")
 
 
-def load(locus, cache_file="test_output.sqlite"):
+def load(locus, cache_file="test_output.sqlite") -> RDG:
+    '''
+    Load a graph from a file
+
+    Parameters
+    ----------
+    locus : str
+        The locus of the graph to load
+
+    cache_file : str
+        The name of the file to load from (should end in .sqlite)
+    '''
     try:
         with SqliteDict(cache_file) as mydict:
             print(list(mydict.keys()))

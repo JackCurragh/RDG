@@ -213,9 +213,12 @@ if __name__ == "__main__":
         },
     }
     dg = RDG()
-    dg = RDG.load_example(dg)
-    print(dg.get_unique_paths())
+    dg.add_open_reading_frame(30, 90)
+    dg.add_open_reading_frame(131, 171)
+    dg.add_open_reading_frame(150, 850)
 
+    save(dg, "test_output.sqlite")
+    dg2 = load("name", "")
 
 
     plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
