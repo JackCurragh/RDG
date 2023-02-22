@@ -71,7 +71,7 @@ class Edge(object):
 
 
 class RDG(object):
-    def __init__(self, locus_stop: int = 1000, name: str = None):
+    def __init__(self, locus_stop: int = 1000, name: str = "name"):
         """
         Initialise a fresh RDG object
 
@@ -345,6 +345,7 @@ class RDG(object):
         to_node_key: int key of the node the edge is going to
 
         """
+
         self.nodes[from_node_key].output_edges.append(edge.key)
         self.nodes[from_node_key].output_nodes.append(to_node_key)
 
@@ -477,8 +478,6 @@ class RDG(object):
         self.add_edge(coding, start_node.key, stop_node.key)
 
         terminal_node_key = self.get_new_node_key()
-        if terminal_node_key == 14:
-            print("edge", edge.key, edge.coordinates, edge.from_node, edge.to_node)
         terminal_node = Node(
             key=terminal_node_key,
             node_type="3_prime",
@@ -570,7 +569,6 @@ class RDG(object):
 
         path = [self.nodes[node].input_edges[0]]
         reached_root = False
-
         while not reached_root:
             in_node = self.nodes[node].input_nodes[0]
             if self.nodes[in_node].input_nodes == []:
@@ -659,6 +657,8 @@ class RDG(object):
             )
 
             node_key = node_key + 1
+
+
             stop_node = Node(
                 key=node_key,
                 node_type="stop",
@@ -704,6 +704,11 @@ class RDG(object):
                 key=new_stop_node_key,
                 node_type="stop",
                 position=next_stop_codon_position,
+                edges_in=[],
+                edges_out=[],
+                nodes_in=[],
+                nodes_out=[],
+                
             )
             self.add_node(new_stop_node)
 
@@ -720,7 +725,6 @@ class RDG(object):
             )
             self.add_edge(coding, readthrough_key, new_stop_node.key)
 
-
             terminal_node_key = self.get_new_node_key()
             three_prime_terminal_key = self.nodes[readthrough_key].output_nodes[0]
 
@@ -729,10 +733,12 @@ class RDG(object):
                 key=terminal_node_key,
                 node_type="3_prime",
                 position=self.nodes[three_prime_terminal_key].node_start,
+                nodes_in=[],
+                nodes_out=[],
+                edges_in=[],
+                edges_out=[],
             )
             self.add_node(terminal_node)
-
-            print(self.nodes[7].input_nodes)
 
             new_3_prime_edge = self.get_new_edge_key()
             three_prime = Edge(
@@ -745,12 +751,7 @@ class RDG(object):
                     self.nodes[three_prime_terminal_key].node_start,
                 ),
             )
-            print(self.nodes[7].input_nodes)
-
-
             self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
-
-            print(self.nodes[7].input_nodes)
 
     def add_frameshift(self, fs_position, next_stop_codon_position, shift):
         """
@@ -776,64 +777,27 @@ class RDG(object):
         for edge, upstream_node in clashing_edges:
             # edge and upstrream are keys
             shift_node_key = self.get_new_node_key()
-            new_stop_node_key = shift_node_key + 1
-            old_stop_node_key = self.edges[edge].to_node
-            new_terminal_key = new_stop_node_key + 1
-
-            old_stop_edge_key = self.get_new_edge_key()
-            new_stop_edge_key = old_stop_edge_key + 1
-            new_three_prime_edge_key = new_stop_edge_key + 1
-
             shift_node = Node(
                 key=shift_node_key,
                 node_type="frameshift",
-                coordinates=fs_position,
-                edges_in=[edge],
-                edges_out=[old_stop_edge_key, new_stop_edge_key],
-                nodes_in=[upstream_node],
-                nodes_out=[old_stop_node_key, new_stop_node_key],
+                position=fs_position,
+                edges_in=[],
+                edges_out=[],
+                nodes_in=[],
+                nodes_out=[],
             )
             self.add_node(shift_node)
 
-            self.nodes[upstream_node].output_nodes.remove(old_stop_node_key)
-            self.nodes[upstream_node].output_nodes.append(shift_node.key)
+            old_stop_node_key = self.edges[edge].to_node
 
-            self.edges[edge].to_node = shift_node_key
-
-            self.nodes[old_stop_node_key].input_edges.remove(edge)
-            self.nodes[old_stop_node_key].input_edges.append(old_stop_edge_key)
-            self.nodes[old_stop_node_key].input_nodes.remove(upstream_node)
-            self.nodes[old_stop_node_key].input_nodes.append(shift_node_key)
-
-            new_stop_node = Node(
-                key=new_stop_node_key,
-                node_type="stop",
-                coordinates=next_stop_codon_position,
-                edges_in=[new_stop_edge_key],
-                edges_out=[new_three_prime_edge_key],
-                nodes_in=[shift_node_key],
-                nodes_out=[new_terminal_key],
-            )
-            self.add_node(new_stop_node)
-
-            new_terminal_node = Node(
-                key=new_terminal_key,
-                node_type="3_prime",
-                coordinates=self.locus_stop,
-                edges_in=[new_three_prime_edge_key],
-                edges_out=[],
-                nodes_in=[new_stop_node_key],
-                nodes_out=[],
-            )
-            self.add_node(new_terminal_node)
-
+            old_stop_edge_key = self.get_new_edge_key()
             old_stop_edge = Edge(
                 key=old_stop_edge_key,
                 edge_type="translated",
                 from_node=shift_node_key,
                 to_node=old_stop_node_key,
                 coordinates=(
-                    shift_node.node_start,
+                    shift_node.node_start + shift,
                     self.nodes[old_stop_node_key].node_start,
                 ),
             )
@@ -842,8 +806,32 @@ class RDG(object):
                 from_node_key=shift_node_key,
                 to_node_key=old_stop_node_key,
             )
-            self.edges[old_stop_edge_key].frame = self.edges[edge].frame
 
+            self.nodes[upstream_node].output_nodes.remove(old_stop_node_key)
+            self.nodes[upstream_node].output_nodes.append(shift_node.key)
+
+            self.edges[edge].to_node = shift_node_key
+
+            self.nodes[old_stop_node_key].input_edges.remove(edge)
+            self.nodes[old_stop_node_key].input_edges.append(old_stop_edge_key)
+
+            if upstream_node in self.nodes[old_stop_node_key].input_nodes:
+                self.nodes[old_stop_node_key].input_nodes.remove(upstream_node)
+
+
+            new_stop_node_key = self.get_new_node_key()
+            new_stop_node = Node(
+                key=new_stop_node_key,
+                node_type="stop",
+                position=next_stop_codon_position,
+                edges_in=[],
+                edges_out=[],
+                nodes_in=[],
+                nodes_out=[],
+            )
+            self.add_node(new_stop_node)
+
+            new_stop_edge_key = self.get_new_edge_key()
             new_stop_edge = Edge(
                 key=new_stop_edge_key,
                 edge_type="translated",
@@ -860,6 +848,24 @@ class RDG(object):
                 to_node_key=new_stop_node_key,
             )
 
+            print(self.nodes[shift_node_key].input_nodes, self.nodes[shift_node_key].key, self.nodes[shift_node_key].output_nodes)
+            print(self.nodes[old_stop_node_key].input_nodes, self.nodes[old_stop_node_key].key, self.nodes[old_stop_node_key].output_nodes)
+
+            new_terminal_key = self.get_new_node_key()
+            new_terminal_node = Node(
+                key=new_terminal_key,
+                node_type="3_prime",
+                position=self.locus_stop,
+                edges_in=[],
+                edges_out=[],
+                nodes_in=[],
+                nodes_out=[],
+            )
+            self.add_node(new_terminal_node)
+
+
+
+            new_three_prime_edge_key = self.get_new_edge_key()
             new_three_prime_edge = Edge(
                 key=new_three_prime_edge_key,
                 edge_type="untranslated",
@@ -951,26 +957,7 @@ class RDG(object):
                         )
                     )
 
-                elif self.nodes[candidate_stop].node_type == "frameshift":
-                    # orfs.append((self.nodes[start].node_start, self.nodes[candidate_stop].node_start))
-                    fs_downstream_nodes = self.nodes[candidate_stop].output_nodes
-                    for new_candidate_stop in fs_downstream_nodes:
-                        if self.nodes[new_candidate_stop].node_type == "stop":
-                            orf = (
-                                self.nodes[start].node_start,
-                                self.nodes[candidate_stop].node_start,
-                                self.nodes[new_candidate_stop].node_start,
-                            )
-                            if orf not in orfs:
-                                orfs.append(orf)
-
-                elif self.nodes[candidate_stop].node_type == "readthrough_stop":
-                    orfs.append(
-                        (
-                            self.nodes[start].node_start,
-                            self.nodes[candidate_stop].node_start,
-                        )
-                    )
+                    # Search for cases of readthrough
                     readthrough_downstream_nodes = self.nodes[
                         candidate_stop
                     ].output_nodes
@@ -984,6 +971,20 @@ class RDG(object):
                             if orf not in orfs:
                                 orfs.append(orf)
 
+                elif self.nodes[candidate_stop].node_type == "frameshift":
+                    # orfs.append((self.nodes[start].node_start, self.nodes[candidate_stop].node_start))
+                    fs_downstream_nodes = self.nodes[candidate_stop].output_nodes
+                    for new_candidate_stop in fs_downstream_nodes:
+                        if self.nodes[new_candidate_stop].node_type == "stop":
+                            orf = (
+                                self.nodes[start].node_start,
+                                self.nodes[candidate_stop].node_start,
+                                self.nodes[new_candidate_stop].node_start,
+                            )
+                            if orf not in orfs:
+                                orfs.append(orf)
+
+
         return orfs
 
     def get_frameshifts(self):
@@ -996,25 +997,18 @@ class RDG(object):
                 frameshifts.append(node)
         return frameshifts
 
-    def print_paths(self):
+    def get_unique_paths(self):
         """
         read out the paths from the graph object
         """
-        root_nodes = []
-        for node in self.nodes:
-            if self.nodes[node].node_type == "5_prime":
-                root_nodes.append(node)
-
-        all_paths = []
-        for root in root_nodes:
-            path_from_root_nodes = [root]
-            if self.nodes[root].output_nodes:
-                for node in self.nodes[root].output_nodes:
-                    self.explore_node_ouputs(node, all_paths, path_from_root_nodes)
-
-            else:
-                all_paths.append(path_from_root_nodes)
-        print("all paths", all_paths)
+        terminal_nodes = self.get_endpoints()
+        paths = []
+        for node in terminal_nodes:
+            path_to_root = self.root_to_node_of_acyclic_node_path(node)
+            if path_to_root not in paths:
+                paths.append(path_to_root)
+        return paths
+    
 
     def statistics(self):
         stats = {}
