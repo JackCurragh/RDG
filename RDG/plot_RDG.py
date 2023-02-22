@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from RDG import RDG, Node, Edge
+from RDG_to_file import save, load
 from matplotlib.gridspec import GridSpec
 
 from ete3 import Tree
@@ -211,16 +212,9 @@ if __name__ == "__main__":
             "frameshift": (0, 0, 0),
         },
     }
-    dg = RDG(name="Example Gene")
-    # dg.add_open_reading_frame(61, 400)  # , reinitiation=True, upstream_limit=2)
-    # dg.add_open_reading_frame(92, 150)  # , reinitiation=False, upstream_limit=2)
-    # dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
-    dg = dg.load_example()
-    dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
-
-    dg.add_open_reading_frame(30, 90)
-    # dg.add_stop_codon_readthrough(100, 132*3)
-
+    dg = RDG()
+    dg = RDG.load_example(dg)
+    print(dg.get_unique_paths())
 
 
 

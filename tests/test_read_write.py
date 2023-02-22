@@ -10,6 +10,6 @@ def test_read_write():
     dg.add_open_reading_frame(150, 850)
 
     save(dg, "test_output.sqlite")
-    dg2 = load("", "test_output.sqlite")
+    dg2 = load("name", "test_output.sqlite")
 
     assert dg.describe() == dg2.describe()

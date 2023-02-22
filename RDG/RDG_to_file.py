@@ -4,7 +4,6 @@ from sqlitedict import SqliteDict
 
 def to_dict(obj):
     output = {}
-    print(obj, type(obj), obj.__dict__.items())
     for key, item in obj.__dict__.items():
         if isinstance(item, list):
             l = []
@@ -48,11 +47,12 @@ def save(graph, save_file):
 def load(locus, cache_file="test_output.sqlite"):
     try:
         with SqliteDict(cache_file) as mydict:
+            print(list(mydict.keys()))
             graph_dict = mydict[
                 locus
             ]  # No need to use commit(), since we are only loading data!
     except Exception as ex:
-        print("Error during loading data:", ex)
+        raise Exception("Error during loading data:", ex)
 
     dg = RDG()
     nodes = {}
@@ -86,18 +86,3 @@ def load(locus, cache_file="test_output.sqlite"):
         edges=edges,
     )
     return dg
-
-
-# if __name__ == "__main__":
-#     dg = RDG()
-#     dg.add_open_reading_frame(30, 90)
-#     dg.add_open_reading_frame(131, 171)
-#     dg.add_open_reading_frame(150,850)
-
-#     # save(dg, 'test_output.sqlite')
-#     dg2 = load('', 'test_output.sqlite')
-
-#     a = dg.describe()
-#     print()
-#     b = dg2.describe()
-#     print(a == b)

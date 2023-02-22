@@ -88,9 +88,61 @@ def test_get_startpoints():
     g = RDG()
     g = RDG.load_example(g)
     startpoints = g.get_startpoints()
-    assert len(startpoints) == 1
+    assert startpoints == [1]
+
+def test_get_endpoints():
+    g = RDG()
+    g = RDG.load_example(g)
+    endpoints = g.get_endpoints()
+    assert endpoints == [2, 5]
+
+def test_get_start_nodes():
+    g = RDG()
+    g = RDG.load_example(g)
+    start_nodes = g.get_start_nodes()
+    assert start_nodes == [3]
+
+def test_get_stop_nodes():
+    g = RDG()
+    g = RDG.load_example(g)
+    stop_nodes = g.get_stop_nodes()
+    assert stop_nodes == [4]
 
 def test_is_input_edge_translated():
     g = RDG()
     g = RDG.load_example(g)
     assert g.is_input_edge_translated(4) == True
+    assert g.is_input_edge_translated(3) == False
+
+def test_get_orfs_simple():
+    g = RDG()
+    g = RDG.load_example(g)
+    orfs = g.get_orfs()
+    assert orfs == [(10, 100)]
+
+def test_get_orfs_w_frameshift():
+    g = RDG()
+    g = RDG.load_example(g)
+    g.add_frameshift(30, 40, 1)
+    orfs = g.get_orfs()
+    assert orfs == [(10, 30, 100), (10, 30, 40)]
+
+def test_get_orfs_scr():
+    g = RDG()
+    g = RDG.load_example(g)
+    g.add_stop_codon_readthrough(100, 110)
+    orfs = g.get_orfs()
+    assert orfs == [(10, 100), (10, 110)]
+
+def test_get_frameshifts():
+    g = RDG()
+    g = RDG.load_example(g)
+    g.add_frameshift(30, 40, 1)
+    frameshifts = g.get_frameshifts()
+    assert frameshifts == [6]
+
+def test_get_unique_paths():
+    g = RDG()
+    g = RDG.load_example(g)
+    paths = g.get_unique_paths()
+    assert paths == [[1,3,2], [1,3,4,5]]
