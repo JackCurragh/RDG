@@ -212,18 +212,15 @@ if __name__ == "__main__":
         },
     }
     dg = RDG(name="Example Gene")
-    # dg.add_open_reading_frame(30, 90)  # , reinitiation=True, upstream_limit=2)
     # dg.add_open_reading_frame(61, 400)  # , reinitiation=True, upstream_limit=2)
     # dg.add_open_reading_frame(92, 150)  # , reinitiation=False, upstream_limit=2)
     # dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
-    # dg = dg.load_example()
-
-    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
+    dg = dg.load_example()
+    dg.add_open_reading_frame(549, 849, reinitiation=True, upstream_limit=2)
 
     dg.add_open_reading_frame(30, 90)
     # dg.add_stop_codon_readthrough(100, 132*3)
-    # print(len(dg.edges))
-    print(dg.root_to_node_of_acyclic_node_path(2))
+
 
 
 

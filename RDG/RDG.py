@@ -450,7 +450,7 @@ class RDG(object):
         """
         five_prime_edge_coords = (edge.coordinates[0], start_node.node_start - 1)
         coding_edge_coords = (start_node.node_start, stop_node.node_start)
-        three_prime_edge_coords = (stop_node.node_start + 1, edge.coordinates[1])
+        three_prime_edge_coords = (stop_node.node_start + 1, self.locus_stop)
 
         edge_key = self.get_new_edge_key()
         five_prime = Edge(
@@ -477,10 +477,12 @@ class RDG(object):
         self.add_edge(coding, start_node.key, stop_node.key)
 
         terminal_node_key = self.get_new_node_key()
+        if terminal_node_key == 14:
+            print("edge", edge.key, edge.coordinates, edge.from_node, edge.to_node)
         terminal_node = Node(
             key=terminal_node_key,
             node_type="3_prime",
-            position=edge.coordinates[1],
+            position=self.locus_stop,
             edges_in=[],
             edges_out=[],
             nodes_in=[],
@@ -628,6 +630,9 @@ class RDG(object):
         upstream_limit: int number of ORFs allowed upstream
 
         """
+        if stop_codon_position > self.locus_stop:
+            raise Exception(f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})")
+        
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
@@ -683,6 +688,9 @@ class RDG(object):
         next_stop_codon_position: int position of the next stop codon
 
         """
+        if next_stop_codon_position > self.locus_stop:
+            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
+
         readthrough_codon_keys = self.get_key_from_position(
             readthrough_codon_position, "stop"
         )
@@ -721,10 +729,6 @@ class RDG(object):
                 key=terminal_node_key,
                 node_type="3_prime",
                 position=self.nodes[three_prime_terminal_key].node_start,
-                # nodes_in=[],
-                # nodes_out=[],
-                # edges_in=[],
-                # edges_out=[],
             )
             self.add_node(terminal_node)
 
@@ -752,6 +756,10 @@ class RDG(object):
         """
         add a frameshifting event
         """
+
+        if next_stop_codon_position > self.locus_stop:
+            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
+        
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
