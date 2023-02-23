@@ -433,8 +433,6 @@ class RDG(object):
             if old_from_node in self.nodes[old_to_node].input_nodes:
                 self.nodes[old_to_node].input_nodes.remove(old_from_node)
 
-            if new_from_node not in self.nodes[new_to_node].input_nodes:
-                self.nodes[new_to_node].input_nodes.append(new_from_node)
 
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
@@ -1172,23 +1170,16 @@ class RDG(object):
             else:
                 end_branch_dict[self.get_upstream_branchpoint(end)].append(end)
 
-        check = True if len(branch_points) == len(end_branch_dict) else False
-
-        if check:
-            for branch in end_branch_dict:
-                if len(end_branch_dict[branch]) == 2:
-                    newick += f"({end_branch_dict[branch][0]},{end_branch_dict[branch][1]}){branch}"
-                else:
-
-                    raise Exception("Branchpoint has more than two endpoints")
-        else:
-            for branch in end_branch_dict:
-                if self.get_upstream_branchpoint(branch) not in end_branch_dict:
-                    end_branch_dict[self.get_upstream_branchpoint(branch)] = [branch]
-                else:
-                    end_branch_dict[self.get_upstream_branchpoint(branch)].append(branch)
-                
-
+        branches_added = []
+        for branch in end_branch_dict:
+            if len(end_branch_dict[branch]) == 2:
+                newick += f"({end_branch_dict[branch][0]}:1,{end_branch_dict[branch][1]}:1){branch}:1"
+            elif len(end_branch_dict[branch]) >2:
+                raise Exception("Branchpoint has more than two endpoints")
+            else:
+                newick = "(" + newick 
+                newick += f",{end_branch_dict[branch][0]}:{2*len(branches_added)}){branch}:{2*len(branches_added)}"
+            branches_added.append(branch)
                 
         return "(" + newick + ");"
         

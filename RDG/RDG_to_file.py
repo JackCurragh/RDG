@@ -59,6 +59,24 @@ def save(graph, save_file):
 
     except:
         raise Exception("Error during storing data (Possibly unsupported):")
+    
+def newick_to_file(newick, save_file):
+    '''
+    Save a newick string to a file
+
+    Parameters
+    ----------
+    newick : str
+        The newick string to save
+
+    save_file : str
+        The name of the file to save to (should end in .sqlite)
+    '''
+    with open(save_file, 'w') as file:
+        file.write(newick)
+
+
+
 
 
 def load(locus, cache_file="test_output.sqlite") -> RDG:

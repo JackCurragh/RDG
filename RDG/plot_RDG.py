@@ -1,13 +1,13 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from RDG import RDG, Node, Edge
-from RDG_to_file import save, load
+# from RDG_to_file import save, load, newick_to_file
 from matplotlib.gridspec import GridSpec
 
 from ete3 import Tree
 
 
-def layout_graph(graph: RDG, branch_height=500) -> dict:
+def layout_graph(graph: RDG, branch_height=5) -> dict:
     """
     Method for laying out the graph based on branch points 
 
@@ -63,7 +63,7 @@ def get_tree_positioning(newick):
     """
 
     t = Tree(newick, format=1)
-    t.render("mytree.png", w=183, units="mm")
+    t.show()
 
 
 def plot(
@@ -206,16 +206,10 @@ if __name__ == "__main__":
         },
     }
 
-    dg = RDG()
-    dg.add_open_reading_frame(100, 200, reinitiation=True, upstream_limit=1)
-    dg.add_open_reading_frame(300, 500, reinitiation=True, upstream_limit=1)
-    dg.add_open_reading_frame(600, 700, reinitiation=True, upstream_limit=1)
-    dg.add_open_reading_frame(800, 900, reinitiation=True, upstream_limit=1)
-
-    print()
-    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=False, show_non_coding=True)
-
-    # # print(dg.newick())
-    # get_tree_positioning(dg.newick())
-
-    # plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
+    g = RDG()
+    g = RDG.load_example(g)
+    g.add_open_reading_frame(30, 40)
+    # plot(g, color_dict=no_node_color_dict)
+    newick = g.newick()
+    get_tree_positioning(newick)
+    print(newick)
