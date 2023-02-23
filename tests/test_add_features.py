@@ -7,8 +7,8 @@ def test_inserting_orfs_edges():
     g = RDG.load_example(g)
     node_key = g.get_new_node_key()
 
-    start_codon_position = 15
-    stop_codon_position = 25
+    start_codon_position = 300
+    stop_codon_position = 400
     start_node = Node(
         key=node_key,
         node_type="start",
@@ -29,7 +29,8 @@ def test_inserting_orfs_edges():
         nodes_in=[],
         nodes_out=[],
     )
-
+    g.add_node(start_node)
+    g.add_node(stop_node)
     g.insert_ORF(g.edges[2], start_node, stop_node)
     assert list(g.edges.keys()) == [1, 2, 3, 4, 5, 6, 7]
 
@@ -61,7 +62,8 @@ def test_insterting_orfs_nodes():
         nodes_in=[],
         nodes_out=[],
     )
-
+    g.add_node(start_node)
+    g.add_node(stop_node)
     g.insert_ORF(g.edges[2], start_node, stop_node)
     assert list(g.nodes.keys()) == [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -93,7 +95,8 @@ def test_insterting_orfs_branch_points():
         nodes_in=[],
         nodes_out=[],
     )
-
+    g.add_node(start_node)
+    g.add_node(stop_node)
     g.insert_ORF(g.edges[2], start_node, stop_node)
 
     branch_points = g.get_branch_points()

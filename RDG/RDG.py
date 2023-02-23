@@ -416,6 +416,12 @@ class RDG(object):
 
             if new_from_node not in self.nodes[new_from_node].output_nodes:
                 self.nodes[new_from_node].output_nodes.append(new_to_node)
+            
+            if old_from_node in self.nodes[new_to_node].input_nodes:
+                self.nodes[new_to_node].input_nodes.remove(old_from_node)
+            
+            if new_from_node not in self.nodes[new_to_node].input_nodes:
+                self.nodes[new_to_node].input_nodes.append(new_from_node)
 
         if old_to_node != new_to_node:
             if edge_key in self.nodes[old_to_node].input_edges:
@@ -435,7 +441,9 @@ class RDG(object):
 
     def insert_ORF(self, edge: Edge, start_node: Node, stop_node: Node):
         """
-        Handle inserting node into just one edge including down path
+        Handle inserting node into just one edge including down path.
+        Nodes are already inserted in the graph but are not connected. This function connects them
+        and updates the edges and nodes as necessary
 
         Parameters:
         -----------
@@ -462,7 +470,6 @@ class RDG(object):
             coordinates=five_prime_edge_coords,
         )
 
-        self.add_node(start_node)
         self.add_edge(five_prime, edge.from_node, start_node.key)
 
         edge_key = self.get_new_edge_key()
@@ -645,30 +652,33 @@ class RDG(object):
                 clashing_edges.append((edge, upstream_node))
 
         for edge, upstream_node in clashing_edges:
-            node_key = self.get_new_node_key()
-            start_node = Node(
-                key=node_key,
-                node_type="start",
-                position=start_codon_position,
-                edges_in=[],
-                edges_out=[],
-                nodes_in=[],
-                nodes_out=[],
-            )
-
-            node_key = self.get_new_edge_key()
-            stop_node = Node(
-                key=node_key,
-                node_type="stop",
-                position=stop_codon_position,
-                edges_in=[],
-                edges_out=[],
-                nodes_in=[],
-                nodes_out=[],
-            )
             if reinitiation or not self.check_translation_upstream(
                 upstream_node, upstream_limit=upstream_limit
             ):
+                node_key = self.get_new_node_key()
+                start_node = Node(
+                    key=node_key,
+                    node_type="start",
+                    position=start_codon_position,
+                    edges_in=[],
+                    edges_out=[],
+                    nodes_in=[],
+                    nodes_out=[],
+                )
+                self.add_node(start_node)
+
+                stop_node_key = self.get_new_node_key()
+                stop_node = Node(
+                    key=stop_node_key,
+                    node_type="stop",
+                    position=stop_codon_position,
+                    edges_in=[],
+                    edges_out=[],
+                    nodes_in=[],
+                    nodes_out=[],
+                )
+                self.add_node(stop_node)
+
                 self.insert_ORF(self.edges[edge], start_node, stop_node)
 
     def add_stop_codon_readthrough(
@@ -1114,3 +1124,71 @@ class RDG(object):
                 output = output + "\n" + string
         return output
 
+    def get_upstream_branchpoint(self, node: str) -> list:
+        """
+        Return a list of branchpoints upstream of a node
+
+        Parameters
+        ----------
+        node: str
+            key of the node
+
+        Returns
+        -------
+        list
+        """
+        if node in self.get_startpoints():
+            return node
+
+        upstream_node = self.nodes[node].input_nodes[0]
+
+        if len(self.nodes[upstream_node].output_nodes) == 1:
+            branchpoint = self.get_upstream_branchpoint(upstream_node)
+            return branchpoint
+        else:
+            return upstream_node
+        
+        
+    def newick(self) -> str:
+        """
+        Return a newick representation of the graph
+
+        Returns:
+        --------
+        str newick representation of the graph
+        """
+        startpoints = self.get_startpoints()
+        if len(startpoints) > 1:
+            raise ValueError("Graph has more than one startpoint")
+        
+        endpoints = self.get_endpoints()
+        branch_points = self.get_branch_points()
+
+        newick = f""
+        end_branch_dict = {}
+        for end in endpoints:
+            if self.get_upstream_branchpoint(end) not in end_branch_dict:
+                end_branch_dict[self.get_upstream_branchpoint(end)] = [end]
+            else:
+                end_branch_dict[self.get_upstream_branchpoint(end)].append(end)
+
+        check = True if len(branch_points) == len(end_branch_dict) else False
+
+        if check:
+            for branch in end_branch_dict:
+                if len(end_branch_dict[branch]) == 2:
+                    newick += f"({end_branch_dict[branch][0]},{end_branch_dict[branch][1]}){branch}"
+                else:
+
+                    raise Exception("Branchpoint has more than two endpoints")
+        else:
+            for branch in end_branch_dict:
+                if self.get_upstream_branchpoint(branch) not in end_branch_dict:
+                    end_branch_dict[self.get_upstream_branchpoint(branch)] = [branch]
+                else:
+                    end_branch_dict[self.get_upstream_branchpoint(branch)].append(branch)
+                
+
+                
+        return "(" + newick + ");"
+        

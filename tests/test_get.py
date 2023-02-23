@@ -146,3 +146,15 @@ def test_get_unique_paths():
     g = RDG.load_example(g)
     paths = g.get_unique_paths()
     assert paths == [[1,3,2], [1,3,4,5]]
+
+def test_get_upstream_branchpoint():
+    g = RDG()
+    g = RDG.load_example(g)
+    bp = g.get_upstream_branchpoint(3)
+    assert bp == 1
+
+def test_get_upstream_branchpoint_no_direct_bp():
+    g = RDG()
+    g = RDG.load_example(g)
+    bp = g.get_upstream_branchpoint(5)
+    assert bp == 3

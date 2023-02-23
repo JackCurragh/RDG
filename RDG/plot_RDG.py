@@ -7,47 +7,42 @@ from matplotlib.gridspec import GridSpec
 from ete3 import Tree
 
 
-def position_graphs_nodes(graph) -> dict:
+def layout_graph(graph: RDG, branch_height=500) -> dict:
     """
-    determine the positioning of rdg nodes from graph structure.
-    This is a hacky method that determines Y axis by node key rather than calculating an optimum based on overlaps
+    Method for laying out the graph based on branch points 
+
     """
+    pos = {}
+    
+    paths = graph.get_unique_paths()
+    node_y_positions = {paths[0][0]: 0}
 
-    node_x_positions = [
-        (graph.nodes[node].key, graph.nodes[node].node_start) for node in graph.nodes
-    ]
-    pos = {node: (x_position, node) for node, x_position in node_x_positions}
+    branch_points = graph.get_branch_points()
 
-    return pos
-
-
-def position_horizontal_paths(graph) -> dict:
-    """
-    Calculate node positions for RDG with horizontal paths.
-    """
-    pos = position_graphs_nodes(graph)
+    branch_num = 0 
+    for path in paths:
+        for i, node in enumerate(path):
+            if node in branch_points:
+                if node not in node_y_positions:
+                    node_y_positions[node] = branch_num
+                    branch_num += branch_height
+            
+            else:
+                if node not in node_y_positions:
+                    if graph.nodes[node].node_type == "3_prime":
+                        upstream_node = graph.nodes[node].input_nodes[0]
+                        if upstream_node in branch_points:
+                            node_y_positions[node] = node_y_positions[path[i-1]] + 3
+                        else:
+                            node_y_positions[node] = node_y_positions[path[i-1]]
+                    else:
+                        node_y_positions[node] = node_y_positions[path[i-1]]
 
     for node in graph.nodes:
-        # if node is a stop node, move it to the same y position (height) as the start node
-        if graph.nodes[node].node_type in ["stop", "3_prime"]:
-            upstream_node = graph.nodes[node].input_nodes[0]
-            if graph.nodes[upstream_node].node_type in ["start", "5_prime", "stop"]:
-                pos[node] = (pos[node][0], pos[upstream_node][1]+1)
-            else:
-                pos[node] = (pos[node][0], pos[upstream_node][1] + 1)
+        pos[node] = (graph.nodes[node].node_start, node_y_positions[node])
 
-    # start the graph in line with the lowest numbered start node
-    start_nodes = [
-        node for node in graph.nodes if graph.nodes[node].node_type == "start"
-    ]
-    if start_nodes not in [[], None]:
-        pos[1] = (pos[1][0], min([pos[node][1] for node in start_nodes])-1)
-
-    # hacky way to ensure that the non-coding path is at the top of the graph
-
-    highest_node = max(list(pos.keys()))
-    # pos[2] = (pos[2][0], pos[highest_node][1] + 1)
     return pos
+
 
 
 default_color_dict = {
@@ -62,15 +57,12 @@ default_color_dict = {
 }
 
 
-def get_tree_positioning(graph):
+def get_tree_positioning(newick):
     """
     plot graph data strucuture using ete3 package
     """
-    # rooted_tree = ete3.Tree( "((A,B),(C,D));" )
 
-    # rooted_tree.render("mytree.png", w=183, units="mm")
-    # # print(rooted_tree)
-    t = Tree("((a:1,b:1):1,c:2);")
+    t = Tree(newick, format=1)
     t.render("mytree.png", w=183, units="mm")
 
 
@@ -87,7 +79,7 @@ def plot(
     # The networkx graph must either be directed or the edges must be sorted before adding to graph
     G = nx.DiGraph() 
 
-    get_tree_positioning(graph)
+
 
     # store orfs in each frame for plotting the ORF plot.
     orfs_in_frame = {0: [], 1: [], 2: []}
@@ -100,7 +92,8 @@ def plot(
             orfs_in_frame[orf[1] % 3].append((orf[1], orf[2] - orf[1]))
 
     # position nodes on xy plane
-    pos = position_horizontal_paths(graph)
+    pos = layout_graph(graph)
+
 
     # identify feature types for colouring
     endpoints = graph.get_endpoints()
@@ -171,8 +164,8 @@ def plot(
         width=edge_width,
         edge_color=edge_colors,
         with_labels=label_nodes,
-        alpha=0.3,
-        font_size=20,
+        alpha=0.7,
+        font_size=15,
     )
 
     # plot the orf plot
@@ -212,13 +205,17 @@ if __name__ == "__main__":
             "frameshift": (0, 0, 0),
         },
     }
+
     dg = RDG()
-    dg.add_open_reading_frame(30, 90)
-    dg.add_open_reading_frame(131, 171)
-    dg.add_open_reading_frame(150, 850)
+    dg.add_open_reading_frame(100, 200, reinitiation=True, upstream_limit=1)
+    dg.add_open_reading_frame(300, 500, reinitiation=True, upstream_limit=1)
+    dg.add_open_reading_frame(600, 700, reinitiation=True, upstream_limit=1)
+    dg.add_open_reading_frame(800, 900, reinitiation=True, upstream_limit=1)
 
-    save(dg, "test_output.sqlite")
-    dg2 = load("name", "")
+    print()
+    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=False, show_non_coding=True)
 
+    # # print(dg.newick())
+    # get_tree_positioning(dg.newick())
 
-    plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
+    # plot(dg, color_dict=no_node_color_dict, edge_width=3, label_nodes=True, show_non_coding=True)
