@@ -4,10 +4,11 @@ from RDG import RDG, Node, Edge
 # from RDG_to_file import save, load, newick_to_file
 from matplotlib.gridspec import GridSpec
 
-from ete3 import Tree
+from ete3 import Tree, NodeStyle,  faces, AttrFace, TreeStyle
+from rich import inspect
 
 
-def layout_graph(graph: RDG, branch_height=5) -> dict:
+def layout_graph(graph: RDG, branch_height=1) -> dict:
     """
     Method for laying out the graph based on branch points 
 
@@ -18,6 +19,7 @@ def layout_graph(graph: RDG, branch_height=5) -> dict:
     node_y_positions = {paths[0][0]: 0}
 
     branch_points = graph.get_branch_points()
+    branch_points.remove(4)
 
     branch_num = 0 
     for path in paths:
@@ -56,15 +58,56 @@ default_color_dict = {
     },
 }
 
-
-def get_tree_positioning(newick):
+def plot_ete3(graph):
     """
     plot graph data strucuture using ete3 package
     """
+    newick = graph.newick()
+    print(newick)
 
     t = Tree(newick, format=1)
-    t.show()
 
+    # Create a NodeStyle object to define the style of the added feature
+    # Create a dictionary of node types and their corresponding colors
+    color_dict = {"blue": (0, 0, 255), "purple": (128, 0, 128), "green": (0, 128, 0), "red": (255, 0, 0)}
+
+    node_colors = {
+        "5_prime": color_dict["blue"],
+        "3_prime": color_dict["purple"],
+        "start": color_dict["green"],
+        "stop": color_dict["red"],
+    }
+    edge_colors = {1: color_dict["red"], 2: color_dict["green"], 0: color_dict["blue"]}
+
+
+    
+    coding_edges = [(graph.edges[edge].from_node, graph.edges[edge].to_node) for edge in graph.edges if graph.edges[edge].edge_type == "translated"]
+
+    # Loop over the nodes in the tree and add node coloring and size/shape modifications
+    for node in t.traverse("levelorder"):
+        # Add a color rectangle to the node based on its node_type attribute
+        node_type = graph.nodes[int(node.name)].node_type
+        if node_type in node_colors:
+            color = "#%02x%02x%02x" % node_colors[node_type]
+            # color = "#%02x%02x%02x" % (int(255*support), int(255*(1-support)), 0)
+            node.img_style["fgcolor"] = color
+            node.img_style["size"] = 4
+            node.img_style["shape"] = "square"
+    
+        if not node.is_leaf():
+            if node.up is not None:
+                if (int(node.up.name), int(node.name)) in coding_edges:
+                    node.img_style["hz_line_width"] = 4
+                    color = "#%02x%02x%02x" % edge_colors[graph.nodes[int(node.up.name)].node_start % 3]
+                    node.img_style["hz_line_color"] = color
+                    node.img_style["vt_line_type"] = "dashed"
+                    
+    # Create a TreeStyle object with the desired scale
+    ts = TreeStyle()
+    ts.scale = 0.05
+
+    # Show the tree with the adjusted branch lengths and scale
+    t.show(tree_style=ts)
 
 def plot(
     graph,
@@ -207,9 +250,9 @@ if __name__ == "__main__":
     }
 
     g = RDG()
-    g = RDG.load_example(g)
-    g.add_open_reading_frame(30, 40)
+    g.add_open_reading_frame(50, 100)
+    g.add_open_reading_frame(90, 400)
+    # g.add_stop_codon_readthrough(100, 200)
     # plot(g, color_dict=no_node_color_dict)
-    newick = g.newick()
-    get_tree_positioning(newick)
-    print(newick)
+
+    plot_ete3(g)

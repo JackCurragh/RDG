@@ -1,9 +1,8 @@
-from networkx.exception import AmbiguousSolution
-from RDG import RDG, Node, Edge, plot, save
-from pprint import pprint
+from RDG import RDG
 from progress.bar import Bar
-from time import time
 from plot_RDG import plot
+
+# from profilestats import profile
 
 
 # table = """TTT F      CTT L      ATT I      GTT V
@@ -113,12 +112,17 @@ def build_graphs_from_fasta(
 if __name__ == "__main__":
     graphs = build_graphs_from_fasta(
         "/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa",
-        min_lenth=100,
+        min_lenth=10,
         reinitiation=False,
         readthrough=False,
-        upstream_limit=1,
+        upstream_limit=100,
     )
     # graphs = build_graphs_from_fasta('/home/jack/projects/decision_graphs/data/test_fasta_multi_sequences.fa')
     for dg in graphs:
-        print(dg.get_orfs())
+        orfs = dg.get_orfs()
+        longest_orf = max(orfs, key=lambda x: x[1] - x[0])
+        print(longest_orf, longest_orf[0] % 3)
+        print(dg.describe())
+        with open('test.nwk', "w") as f:
+            f.write(dg.newick())
         plot(dg)
