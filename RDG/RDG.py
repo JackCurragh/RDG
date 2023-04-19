@@ -167,7 +167,7 @@ class RDG(object):
             2: Node(
                 key=2,
                 node_type="3_prime",
-                position=1000 - 1,
+                position=1000,
                 edges_in=[2],
                 nodes_in=[3],
             ),
@@ -192,7 +192,7 @@ class RDG(object):
             5: Node(
                 key=5,
                 node_type="3_prime",
-                position=1000 - 1,
+                position=1000,
                 edges_in=[4],
                 nodes_in=[4],
             ),
@@ -1243,7 +1243,7 @@ class RDG(object):
             2: Node(
                 key=2,
                 node_type="3_prime",
-                position=transcript_length - 1,
+                position=transcript_length,
                 edges_in=[1],
                 nodes_in=[1],
             ),
@@ -1316,7 +1316,7 @@ class RDG(object):
             2: Node(
                 key=2,
                 node_type="3_prime",
-                position=1000 - 1,
+                position=1000,
                 edges_in=[2],
                 nodes_in=[3],
             ),
@@ -1341,7 +1341,7 @@ class RDG(object):
             5: Node(
                 key=5,
                 node_type="3_prime",
-                position=1000 - 1,
+                position=1000,
                 edges_in=[4],
                 nodes_in=[4],
             ),
@@ -2322,6 +2322,7 @@ class RDG(object):
         # Base case: If the current node is an endpoint, return its label and branch length
         if node in self.get_endpoints():
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
+            print(path_to_root)
             branch_lengths = [self.nodes[i].node_start for i in path_to_root][:-1]
             branch_length = self.nodes[node].node_start - sum(branch_lengths)
             return f"{node}:{branch_length}"
@@ -2341,8 +2342,10 @@ class RDG(object):
 
         # Calculate branch length based on the difference in 'position' values
         if root != node:
-            root_position = self.nodes[root].node_start
-            branch_length = parent_position - root_position
+            path_to_root = self.root_to_node_of_acyclic_node_path(node)
+            branch_lengths = [self.nodes[i].node_start for i in path_to_root]
+            branch_length = branch_lengths[-1] - branch_lengths[-2]
+            print(node,  self.nodes[node].node_start, branch_length, branch_lengths)
             newick += f":{branch_length}"
 
         # If the current node is the root, append the final semicolon

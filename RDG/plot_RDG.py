@@ -69,7 +69,10 @@ def plot_ete3(graph):
 
     # Create a NodeStyle object to define the style of the added feature
     # Create a dictionary of node types and their corresponding colors
-    color_dict = {"blue": (0, 0, 255), "purple": (128, 0, 128), "green": (0, 128, 0), "red": (255, 0, 0)}
+    color_dict = {"blue": (0, 0, 255), 
+                  "purple": (128, 0, 128), 
+                  "green": (0, 128, 0), 
+                  "red": (255, 0, 0)}
 
     node_colors = {
         "5_prime": color_dict["blue"],
@@ -91,8 +94,8 @@ def plot_ete3(graph):
             color = "#%02x%02x%02x" % node_colors[node_type]
             # color = "#%02x%02x%02x" % (int(255*support), int(255*(1-support)), 0)
             node.img_style["fgcolor"] = color
-            node.img_style["size"] = 4
-            node.img_style["shape"] = "square"
+            node.img_style["size"] = 3
+            node.img_style["shape"] = "circle"
     
         if not node.is_leaf():
             if node.up is not None:
@@ -101,7 +104,7 @@ def plot_ete3(graph):
                     color = "#%02x%02x%02x" % edge_colors[graph.nodes[int(node.up.name)].node_start % 3]
                     node.img_style["hz_line_color"] = color
                     node.img_style["vt_line_type"] = "dashed"
-                    
+
     # Create a TreeStyle object with the desired scale
     ts = TreeStyle()
     ts.scale = 0.05
@@ -249,10 +252,14 @@ if __name__ == "__main__":
         },
     }
 
-    g = RDG()
-    g.add_open_reading_frame(50, 100)
-    g.add_open_reading_frame(90, 400)
+    # g = RDG()
+    # g.add_open_reading_frame(50, 600)
+    # g.add_open_reading_frame(90, 800)
     # g.add_stop_codon_readthrough(100, 200)
     # plot(g, color_dict=no_node_color_dict)
 
-    plot_ete3(g)
+    # plot_ete3(g)
+    g = RDG()
+    g = RDG.load_example(g)
+    newick = g.newick()
+    print(newick)
