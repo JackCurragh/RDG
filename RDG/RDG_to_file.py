@@ -93,7 +93,6 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
     '''
     try:
         with SqliteDict(cache_file) as mydict:
-            print(list(mydict.keys()))
             graph_dict = mydict[
                 locus
             ]  # No need to use commit(), since we are only loading data!

@@ -195,7 +195,6 @@ def add_stop_codon_readthrough(
         graph.add_edge(coding, readthrough_key, new_stop_node.key)
 
         graph.nodes[readthrough_key].node_type = "stop"
-        print(graph.nodes[readthrough_key].output_nodes)
 
         terminal_node_key = graph.get_new_node_key()
         three_prime_terminal_key = graph.nodes[readthrough_key].output_nodes[0]
@@ -221,14 +220,7 @@ def add_stop_codon_readthrough(
         graph.add_node(terminal_node)
         graph.add_edge(three_prime, new_stop_node.key, terminal_node_key)
 
-        print("out node: ", graph.nodes[terminal_node_key].output_nodes)
-        print("In node: ", graph.nodes[terminal_node_key].input_nodes)
-        print("In edge: ", graph.nodes[terminal_node_key].input_edges)
-        print(graph.edges[graph.nodes[terminal_node_key].input_edges[0]].from_node)
 
-        for n in graph.nodes.keys():
-            if 7 in graph.nodes[n].output_nodes:
-                print("7 is in: ", n, graph.nodes[n].output_nodes)
         # terminal_node_key2 = graph.get_new_node_key()
 
         # terminal_node2 = Node(
