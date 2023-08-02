@@ -19,7 +19,7 @@ def layout_graph(graph: RDG, branch_height=1) -> dict:
     node_y_positions = {paths[0][0]: 0}
 
     branch_points = graph.get_branch_points()
-    branch_points.remove(4)
+    # branch_points.remove(4)
 
     branch_num = 0 
     for path in paths:
@@ -111,6 +111,7 @@ def plot_ete3(graph):
 
     # Show the tree with the adjusted branch lengths and scale
     t.show(tree_style=ts)
+    # t.render("~/test.png", tree_style=ts)
 
 def plot(
     graph,
@@ -252,14 +253,13 @@ if __name__ == "__main__":
         },
     }
 
-    # g = RDG()
-    # g.add_open_reading_frame(50, 600)
-    # g.add_open_reading_frame(90, 800)
-    # g.add_stop_codon_readthrough(100, 200)
-    # plot(g, color_dict=no_node_color_dict)
+    g = RDG()
+    g.add_open_reading_frame(50, 600)
+    g.add_open_reading_frame(90, 800)
+    plot(g, color_dict=no_node_color_dict)
 
     # plot_ete3(g)
-    g = RDG()
-    g = RDG.load_example(g)
-    newick = g.newick()
-    print(newick)
+    # g = RDG()
+    # g = RDG.load_example(g)
+    # newick = g.newick()
+    # print(newick)
