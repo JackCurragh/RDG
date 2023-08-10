@@ -2323,9 +2323,7 @@ class RDG(object):
         if node in self.get_endpoints():
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
             branch_lengths = [self.nodes[i].node_start for i in path_to_root][:-1]
-            print(branch_lengths, sum(branch_lengths), self.locus_stop)
             branch_length = self.nodes[node].node_start - sum(branch_lengths)
-            print(node, branch_length)
             return f"{node}:{branch_length}"
 
         # Recursive case: Build the Newick string for the children of the current node
