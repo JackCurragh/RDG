@@ -129,3 +129,17 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
         edges=edges,
     )
     return dg
+
+
+def newick_from_file(newick_file):
+    '''
+    Load a newick string from a file
+
+    Parameters
+    ----------
+    newick_file : str
+        The name of the file to load from (should end in .sqlite)
+    '''
+    with open(newick_file, 'r') as file:
+        newick = file.read()
+    return newick
