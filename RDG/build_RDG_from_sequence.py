@@ -123,6 +123,6 @@ if __name__ == "__main__":
         longest_orf = max(orfs, key=lambda x: x[1] - x[0])
         print(longest_orf, longest_orf[0] % 3)
         print(dg.describe())
-        with open('test.nwk', "w") as f:
+        with open("test.nwk", "w") as f:
             f.write(dg.newick())
         plot(dg)

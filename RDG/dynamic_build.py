@@ -1,9 +1,9 @@
-'''
+"""
 This script contains functions for dynamically builidng RDGs 
 
 RDGs can be built 'dynamically' by adding nodes and edges to the graph for the inclusion of features 
 or 'statically' where the structure of the graph is pre-defined by the annotation of branch points.  
-'''
+"""
 
 from RDG import RDG, Node, Edge
 
@@ -82,12 +82,13 @@ def insert_ORF(self, edge: Edge, start_node: Node, stop_node: Node):
         (start_node.node_start, self.nodes[edge.to_node].node_start),
     )
 
+
 def add_open_reading_frame(
     graph,
     start_codon_position: int,
     stop_codon_position: int,
-    reinitiation: bool=False,
-    upstream_limit: int=0,
+    reinitiation: bool = False,
+    upstream_limit: int = 0,
 ):
     """
     Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
@@ -113,9 +114,7 @@ def add_open_reading_frame(
     for edge in exisiting_edges:
         if (
             start_codon_position
-            in range(
-                graph.edges[edge].coordinates[0], graph.edges[edge].coordinates[1]
-            )
+            in range(graph.edges[edge].coordinates[0], graph.edges[edge].coordinates[1])
             and graph.edges[edge].edge_type != "translated"
         ):
             upstream_node = graph.edges[edge].from_node
@@ -148,14 +147,15 @@ def add_open_reading_frame(
         ):
             graph.insert_ORF(graph.edges[edge], start_node, stop_node)
 
+
 def add_stop_codon_readthrough(
     graph, readthrough_codon_position: int, next_stop_codon_position: int
 ):
     """
     Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
 
-    Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node 
-    go to new stop node and a old terminal node. 
+    Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node
+    go to new stop node and a old terminal node.
 
     Parameters:
     -----------
@@ -220,7 +220,6 @@ def add_stop_codon_readthrough(
         graph.add_node(terminal_node)
         graph.add_edge(three_prime, new_stop_node.key, terminal_node_key)
 
-
         # terminal_node_key2 = graph.get_new_node_key()
 
         # terminal_node2 = Node(
@@ -237,6 +236,7 @@ def add_stop_codon_readthrough(
 
         # print(graph.nodes)
 
+
 def add_frameshift(graph, fs_position, next_stop_codon_position, shift):
     """
     add a frameshifting event
@@ -246,9 +246,7 @@ def add_frameshift(graph, fs_position, next_stop_codon_position, shift):
     for edge in exisiting_edges:
         if (
             fs_position
-            in range(
-                graph.edges[edge].coordinates[0], graph.edges[edge].coordinates[1]
-            )
+            in range(graph.edges[edge].coordinates[0], graph.edges[edge].coordinates[1])
             and graph.edges[edge].edge_type == "translated"
         ):
             upstream_node = graph.edges[edge].from_node

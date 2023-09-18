@@ -3,7 +3,7 @@ from sqlitedict import SqliteDict
 
 
 def to_dict(obj):
-    '''
+    """
     Recursively convert a class to a dictionary
 
     Parameters
@@ -11,10 +11,10 @@ def to_dict(obj):
     obj : class
         The class to convert to a dictionary
 
-    Returns 
+    Returns
     -------
     output : dict
-    '''
+    """
     output = {}
     for key, item in obj.__dict__.items():
         if isinstance(item, list):
@@ -30,7 +30,7 @@ def to_dict(obj):
 
 
 def save(graph, save_file):
-    '''
+    """
     Save a graph to a file
 
     Parameters
@@ -39,7 +39,7 @@ def save(graph, save_file):
 
     save_file : str
         The name of the file to save to (should end in .sqlite)
-    '''
+    """
     graph_dict = {graph.locus: {}}
     for attr, value in graph.__dict__.items():
         if attr not in graph_dict[graph.locus]:
@@ -62,7 +62,7 @@ def save(graph, save_file):
 
 
 def newick_to_file(newick, save_file):
-    '''
+    """
     Save a newick string to a file
 
     Parameters
@@ -72,13 +72,13 @@ def newick_to_file(newick, save_file):
 
     save_file : str
         The name of the file to save to (should end in .sqlite)
-    '''
-    with open(save_file, 'w') as file:
+    """
+    with open(save_file, "w") as file:
         file.write(newick)
 
 
 def load(locus, cache_file="test_output.sqlite") -> RDG:
-    '''
+    """
     Load a graph from a file
 
     Parameters
@@ -88,7 +88,7 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
 
     cache_file : str
         The name of the file to load from (should end in .sqlite)
-    '''
+    """
     try:
         with SqliteDict(cache_file) as mydict:
             graph_dict = mydict[
@@ -132,14 +132,14 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
 
 
 def newick_from_file(newick_file):
-    '''
+    """
     Load a newick string from a file
 
     Parameters
     ----------
     newick_file : str
         The name of the file to load from (should end in .sqlite)
-    '''
-    with open(newick_file, 'r') as file:
+    """
+    with open(newick_file, "r") as file:
         newick = file.read()
     return newick

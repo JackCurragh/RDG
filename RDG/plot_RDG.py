@@ -1,50 +1,50 @@
 import matplotlib.pyplot as plt
 import networkx as nx
 from RDG import RDG, Node, Edge
+
 # from RDG_to_file import save, load, newick_to_file
 from matplotlib.gridspec import GridSpec
 
-from ete3 import Tree, NodeStyle,  faces, AttrFace, TreeStyle
+from ete3 import Tree, NodeStyle, faces, AttrFace, TreeStyle
 from rich import inspect
 
 
 def layout_graph(graph: RDG, branch_height=1) -> dict:
     """
-    Method for laying out the graph based on branch points 
+    Method for laying out the graph based on branch points
 
     """
     pos = {}
-    
+
     paths = graph.get_unique_paths()
     node_y_positions = {paths[0][0]: 0}
 
     branch_points = graph.get_branch_points()
     # branch_points.remove(4)
 
-    branch_num = 0 
+    branch_num = 0
     for path in paths:
         for i, node in enumerate(path):
             if node in branch_points:
                 if node not in node_y_positions:
                     node_y_positions[node] = branch_num
                     branch_num += branch_height
-            
+
             else:
                 if node not in node_y_positions:
                     if graph.nodes[node].node_type == "3_prime":
                         upstream_node = graph.nodes[node].input_nodes[0]
                         if upstream_node in branch_points:
-                            node_y_positions[node] = node_y_positions[path[i-1]] + 3
+                            node_y_positions[node] = node_y_positions[path[i - 1]] + 3
                         else:
-                            node_y_positions[node] = node_y_positions[path[i-1]]
+                            node_y_positions[node] = node_y_positions[path[i - 1]]
                     else:
-                        node_y_positions[node] = node_y_positions[path[i-1]]
+                        node_y_positions[node] = node_y_positions[path[i - 1]]
 
     for node in graph.nodes:
         pos[node] = (graph.nodes[node].node_start, node_y_positions[node])
 
     return pos
-
 
 
 default_color_dict = {
@@ -58,6 +58,7 @@ default_color_dict = {
     },
 }
 
+
 def plot_ete3(graph):
     """
     plot graph data strucuture using ete3 package
@@ -69,10 +70,12 @@ def plot_ete3(graph):
 
     # Create a NodeStyle object to define the style of the added feature
     # Create a dictionary of node types and their corresponding colors
-    color_dict = {"blue": (0, 0, 255), 
-                  "purple": (128, 0, 128), 
-                  "green": (0, 128, 0), 
-                  "red": (255, 0, 0)}
+    color_dict = {
+        "blue": (0, 0, 255),
+        "purple": (128, 0, 128),
+        "green": (0, 128, 0),
+        "red": (255, 0, 0),
+    }
 
     node_colors = {
         "5_prime": color_dict["blue"],
@@ -82,9 +85,11 @@ def plot_ete3(graph):
     }
     edge_colors = {1: color_dict["red"], 2: color_dict["green"], 0: color_dict["blue"]}
 
-
-    
-    coding_edges = [(graph.edges[edge].from_node, graph.edges[edge].to_node) for edge in graph.edges if graph.edges[edge].edge_type == "translated"]
+    coding_edges = [
+        (graph.edges[edge].from_node, graph.edges[edge].to_node)
+        for edge in graph.edges
+        if graph.edges[edge].edge_type == "translated"
+    ]
 
     # Loop over the nodes in the tree and add node coloring and size/shape modifications
     for node in t.traverse("levelorder"):
@@ -96,12 +101,15 @@ def plot_ete3(graph):
             node.img_style["fgcolor"] = color
             node.img_style["size"] = 3
             node.img_style["shape"] = "circle"
-    
+
         if not node.is_leaf():
             if node.up is not None:
                 if (int(node.up.name), int(node.name)) in coding_edges:
                     node.img_style["hz_line_width"] = 4
-                    color = "#%02x%02x%02x" % edge_colors[graph.nodes[int(node.up.name)].node_start % 3]
+                    color = (
+                        "#%02x%02x%02x"
+                        % edge_colors[graph.nodes[int(node.up.name)].node_start % 3]
+                    )
                     node.img_style["hz_line_color"] = color
                     node.img_style["vt_line_type"] = "dashed"
 
@@ -113,6 +121,7 @@ def plot_ete3(graph):
     t.show(tree_style=ts)
     # t.render("~/test.png", tree_style=ts)
 
+
 def plot(
     graph,
     color_dict=default_color_dict,
@@ -122,11 +131,8 @@ def plot(
     label_nodes=False,
     show_non_coding=False,
 ):
-    
     # The networkx graph must either be directed or the edges must be sorted before adding to graph
-    G = nx.DiGraph() 
-
-
+    G = nx.DiGraph()
 
     # store orfs in each frame for plotting the ORF plot.
     orfs_in_frame = {0: [], 1: [], 2: []}
@@ -141,7 +147,6 @@ def plot(
     # position nodes on xy plane
     pos = layout_graph(graph)
 
-
     # identify feature types for colouring
     endpoints = graph.get_endpoints()
     startpoints = graph.get_startpoints()
@@ -153,8 +158,7 @@ def plot(
         pass
     else:
         graph.remove_edge(1)
-    
-    
+
     edges = graph.get_edges_from_to()
 
     # assign correct colouring based on frame to each ORF
@@ -180,6 +184,7 @@ def plot(
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":
             frame = graph.edges[edges[edge]].get_frame()
+            print(edge, frame)
         else:
             frame = None
 
@@ -253,13 +258,29 @@ if __name__ == "__main__":
         },
     }
 
-    g = RDG()
-    g.add_open_reading_frame(50, 600)
-    g.add_open_reading_frame(90, 800)
+    # g = RDG(name="SRD5A1 - NM_001047")
+    # g.add_open_reading_frame(138, 917)
+    # g.add_open_reading_frame(86, 517)
+    # g.add_open_reading_frame(112, 438)
     # plot(g, color_dict=no_node_color_dict)
 
+    # g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
+    # g.add_open_reading_frame(488, 649)
+    # g.add_open_reading_frame(700, 891, reinitiation=True)
+    # g.add_open_reading_frame(888, 1943, reinitiation=True)
+    # plot(g, color_dict=no_node_color_dict)
+
+    g = RDG(name="GPX4", locus_stop=788)
+    g.add_open_reading_frame(69, 380)
+    g.add_stop_codon_readthrough(
+        readthrough_codon_position=380, next_stop_codon_position=581
+    )
+
+    # g.add_frameshift(570, 572, 2)
+    plot(g, color_dict=no_node_color_dict)
+
     # plot_ete3(g)
-    g = RDG()
-    g = RDG.load_example(g)
-    newick = g.newick()
-    print(newick)
+    # g = RDG()
+    # g = RDG.load_example(g)
+    # newick = g.newick()
+    # print(newick)

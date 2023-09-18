@@ -416,10 +416,10 @@ class RDG(object):
 
             if new_from_node not in self.nodes[new_from_node].output_nodes:
                 self.nodes[new_from_node].output_nodes.append(new_to_node)
-            
+
             if old_from_node in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.remove(old_from_node)
-            
+
             if new_from_node not in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.append(new_from_node)
 
@@ -432,7 +432,6 @@ class RDG(object):
 
             if old_from_node in self.nodes[old_to_node].input_nodes:
                 self.nodes[old_to_node].input_nodes.remove(old_from_node)
-
 
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
@@ -583,7 +582,9 @@ class RDG(object):
                 node = in_node
         return path[::-1]
 
-    def check_translation_upstream(self, from_node: int, upstream_limit: int=1) -> bool:
+    def check_translation_upstream(
+        self, from_node: int, upstream_limit: int = 1
+    ) -> bool:
         """
         look upstream of an edges from node and see if any edges are of type 'translated'
         used in reinit functionality. Upstream limit refers to the number of ORFs allowed upstream. ie. can the be multiple reinitiation events or just one etc
@@ -611,8 +612,8 @@ class RDG(object):
         self,
         start_codon_position: int,
         stop_codon_position: int,
-        reinitiation: bool=False,
-        upstream_limit: int=0,
+        reinitiation: bool = False,
+        upstream_limit: int = 0,
     ):
         """
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
@@ -634,8 +635,10 @@ class RDG(object):
 
         """
         if stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})")
-        
+            raise Exception(
+                f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
+
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
@@ -685,8 +688,8 @@ class RDG(object):
         """
         Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
 
-        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node 
-        go to new stop node and a old terminal node. 
+        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node
+        go to new stop node and a old terminal node.
 
         Parameters:
         -----------
@@ -695,7 +698,9 @@ class RDG(object):
 
         """
         if next_stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
+            raise Exception(
+                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
 
         readthrough_codon_keys = self.get_key_from_position(
             readthrough_codon_position, "stop"
@@ -714,7 +719,6 @@ class RDG(object):
                 edges_out=[],
                 nodes_in=[],
                 nodes_out=[],
-                
             )
             self.add_node(new_stop_node)
 
@@ -765,8 +769,8 @@ class RDG(object):
         Handles adding a frameshifting event to the graph.
 
         Frameshifts can only be added to translated edges. If the frameshift is added to a translated edge,
-          the edge is split into two edges. The first edge is the edge up from the frameshift position to the stop. 
-          The second edge is the original edge from the frameshift position to the stop codon. The first edge is 
+          the edge is split into two edges. The first edge is the edge up from the frameshift position to the stop.
+          The second edge is the original edge from the frameshift position to the stop codon. The first edge is
           then translated and the second edge is untranslated.
 
         Parameters:
@@ -777,8 +781,10 @@ class RDG(object):
         """
 
         if next_stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
-        
+            raise Exception(
+                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
+
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
@@ -837,7 +843,6 @@ class RDG(object):
 
             if upstream_node in self.nodes[old_stop_node_key].input_nodes:
                 self.nodes[old_stop_node_key].input_nodes.remove(upstream_node)
-
 
             # Add FS edge to new stop node (i.e the event where a FS happened)
             new_stop_node_key = self.get_new_node_key()
@@ -927,7 +932,7 @@ class RDG(object):
                 endpoints.append(node)
         return endpoints
 
-    def get_startpoints(self)-> list:
+    def get_startpoints(self) -> list:
         """
         Return list of start node keys. These nodes have no input edges as they are the start of the path through the graph (i.e the 5' end of the locus or TSS)
 
@@ -944,7 +949,7 @@ class RDG(object):
                 startpoints.append(node)
         return startpoints
 
-    def get_start_nodes(self)-> list:
+    def get_start_nodes(self) -> list:
         """
         Return translation start keys. These nodes have 2 output edges. One for where translation starts at that site and one for where it doesn't
 
@@ -961,7 +966,7 @@ class RDG(object):
                 translation_starts.append(node)
         return translation_starts
 
-    def get_stop_nodes(self)-> list:
+    def get_stop_nodes(self) -> list:
         """
         Return translation stop keys. These may have 1 or 2 output edges. If they have 2 output edges then they are readthrough cases
 
@@ -975,7 +980,7 @@ class RDG(object):
                 translation_stops.append(node)
         return translation_stops
 
-    def get_orfs(self)-> list:
+    def get_orfs(self) -> list:
         """
         Return a list of coordinates (start, stop) describing the ORFs in the graph. Frameshift ORFs have the form (start, FS coordinate, stop) even when FS event is negative
 
@@ -1028,7 +1033,7 @@ class RDG(object):
 
         return orfs
 
-    def get_frameshifts(self)-> list:
+    def get_frameshifts(self) -> list:
         """
         Return a list of keys for all frameshift nodes.
 
@@ -1042,7 +1047,7 @@ class RDG(object):
                 frameshifts.append(node)
         return frameshifts
 
-    def get_unique_paths(self)-> list:
+    def get_unique_paths(self) -> list:
         """
         Return a list of lists of nodes that describe the unique paths through the graph
 
@@ -1057,7 +1062,6 @@ class RDG(object):
             if path_to_root not in paths:
                 paths.append(path_to_root)
         return paths
-    
 
     def statistics(self) -> dict:
         """
@@ -1145,8 +1149,8 @@ class RDG(object):
             return branchpoint
         else:
             return upstream_node
-        
-        
+
+
 """
 This script contains the RDG class and associated classes for nodes and edges.
 
@@ -1565,10 +1569,10 @@ class RDG(object):
 
             if new_from_node not in self.nodes[new_from_node].output_nodes:
                 self.nodes[new_from_node].output_nodes.append(new_to_node)
-            
+
             if old_from_node in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.remove(old_from_node)
-            
+
             if new_from_node not in self.nodes[new_to_node].input_nodes:
                 self.nodes[new_to_node].input_nodes.append(new_from_node)
 
@@ -1581,7 +1585,6 @@ class RDG(object):
 
             if old_from_node in self.nodes[old_to_node].input_nodes:
                 self.nodes[old_to_node].input_nodes.remove(old_from_node)
-
 
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
@@ -1732,7 +1735,9 @@ class RDG(object):
                 node = in_node
         return path[::-1]
 
-    def check_translation_upstream(self, from_node: int, upstream_limit: int=1) -> bool:
+    def check_translation_upstream(
+        self, from_node: int, upstream_limit: int = 1
+    ) -> bool:
         """
         look upstream of an edges from node and see if any edges are of type 'translated'
         used in reinit functionality. Upstream limit refers to the number of ORFs allowed upstream. ie. can the be multiple reinitiation events or just one etc
@@ -1760,8 +1765,8 @@ class RDG(object):
         self,
         start_codon_position: int,
         stop_codon_position: int,
-        reinitiation: bool=False,
-        upstream_limit: int=0,
+        reinitiation: bool = False,
+        upstream_limit: int = 0,
     ):
         """
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
@@ -1783,8 +1788,10 @@ class RDG(object):
 
         """
         if stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})")
-        
+            raise Exception(
+                f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
+
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
@@ -1834,8 +1841,8 @@ class RDG(object):
         """
         Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
 
-        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node 
-        go to new stop node and a old terminal node. 
+        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node
+        go to new stop node and a old terminal node.
 
         Parameters:
         -----------
@@ -1844,7 +1851,9 @@ class RDG(object):
 
         """
         if next_stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
+            raise Exception(
+                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
 
         readthrough_codon_keys = self.get_key_from_position(
             readthrough_codon_position, "stop"
@@ -1863,7 +1872,6 @@ class RDG(object):
                 edges_out=[],
                 nodes_in=[],
                 nodes_out=[],
-                
             )
             self.add_node(new_stop_node)
 
@@ -1903,7 +1911,7 @@ class RDG(object):
                 from_node=new_stop_node.key,
                 to_node=terminal_node_key,
                 coordinates=(
-                    new_stop_node.node_start,
+                    new_stop_node.node_start - 1,
                     self.nodes[three_prime_terminal_key].node_start,
                 ),
             )
@@ -1914,8 +1922,8 @@ class RDG(object):
         Handles adding a frameshifting event to the graph.
 
         Frameshifts can only be added to translated edges. If the frameshift is added to a translated edge,
-          the edge is split into two edges. The first edge is the edge up from the frameshift position to the stop. 
-          The second edge is the original edge from the frameshift position to the stop codon. The first edge is 
+          the edge is split into two edges. The first edge is the edge up from the frameshift position to the stop.
+          The second edge is the original edge from the frameshift position to the stop codon. The first edge is
           then translated and the second edge is untranslated.
 
         Parameters:
@@ -1926,8 +1934,10 @@ class RDG(object):
         """
 
         if next_stop_codon_position > self.locus_stop:
-            raise Exception(f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})")
-        
+            raise Exception(
+                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+            )
+
         exisiting_edges = self.get_edges()
         clashing_edges = []
         for edge in exisiting_edges:
@@ -1986,7 +1996,6 @@ class RDG(object):
 
             if upstream_node in self.nodes[old_stop_node_key].input_nodes:
                 self.nodes[old_stop_node_key].input_nodes.remove(upstream_node)
-
 
             # Add FS edge to new stop node (i.e the event where a FS happened)
             new_stop_node_key = self.get_new_node_key()
@@ -2076,7 +2085,7 @@ class RDG(object):
                 endpoints.append(node)
         return endpoints
 
-    def get_startpoints(self)-> list:
+    def get_startpoints(self) -> list:
         """
         Return list of start node keys. These nodes have no input edges as they are the start of the path through the graph (i.e the 5' end of the locus or TSS)
 
@@ -2093,7 +2102,7 @@ class RDG(object):
                 startpoints.append(node)
         return startpoints
 
-    def get_start_nodes(self)-> list:
+    def get_start_nodes(self) -> list:
         """
         Return translation start keys. These nodes have 2 output edges. One for where translation starts at that site and one for where it doesn't
 
@@ -2110,7 +2119,7 @@ class RDG(object):
                 translation_starts.append(node)
         return translation_starts
 
-    def get_stop_nodes(self)-> list:
+    def get_stop_nodes(self) -> list:
         """
         Return translation stop keys. These may have 1 or 2 output edges. If they have 2 output edges then they are readthrough cases
 
@@ -2124,7 +2133,7 @@ class RDG(object):
                 translation_stops.append(node)
         return translation_stops
 
-    def get_orfs(self)-> list:
+    def get_orfs(self) -> list:
         """
         Return a list of coordinates (start, stop) describing the ORFs in the graph. Frameshift ORFs have the form (start, FS coordinate, stop) even when FS event is negative
 
@@ -2177,7 +2186,7 @@ class RDG(object):
 
         return orfs
 
-    def get_frameshifts(self)-> list:
+    def get_frameshifts(self) -> list:
         """
         Return a list of keys for all frameshift nodes.
 
@@ -2191,7 +2200,7 @@ class RDG(object):
                 frameshifts.append(node)
         return frameshifts
 
-    def get_unique_paths(self)-> list:
+    def get_unique_paths(self) -> list:
         """
         Return a list of lists of nodes that describe the unique paths through the graph
 
@@ -2206,7 +2215,6 @@ class RDG(object):
             if path_to_root not in paths:
                 paths.append(path_to_root)
         return paths
-    
 
     def statistics(self) -> dict:
         """
@@ -2294,8 +2302,7 @@ class RDG(object):
             return branchpoint
         else:
             return upstream_node
-        
-        
+
     def newick(self, node=None, root=None) -> str:
         """
         Return a Newick representation of the graph.
