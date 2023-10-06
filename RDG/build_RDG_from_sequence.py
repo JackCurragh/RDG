@@ -112,6 +112,7 @@ def build_graphs_from_fasta(
 if __name__ == "__main__":
     graphs = build_graphs_from_fasta(
         "/home/jack/projects/decision_graphs/data/PHPT1_transcript_sequence.fa",
+        start_codons=["ATG"],
         min_lenth=10,
         reinitiation=False,
         readthrough=False,

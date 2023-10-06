@@ -729,7 +729,7 @@ class RDG(object):
                 from_node=readthrough_key,
                 to_node=new_stop_node.key,
                 coordinates=(
-                    self.nodes[readthrough_key].node_start,
+                    self.nodes[readthrough_key].node_start - 1,
                     next_stop_codon_position,
                 ),
             )
@@ -1876,6 +1876,7 @@ class RDG(object):
             self.add_node(new_stop_node)
 
             coding_edge_key = self.get_new_edge_key()
+            print(self.nodes[readthrough_key].node_start)
             coding = Edge(
                 key=coding_edge_key,
                 edge_type="translated",
@@ -1911,7 +1912,7 @@ class RDG(object):
                 from_node=new_stop_node.key,
                 to_node=terminal_node_key,
                 coordinates=(
-                    new_stop_node.node_start - 1,
+                    new_stop_node.node_start,
                     self.nodes[three_prime_terminal_key].node_start,
                 ),
             )
