@@ -2,13 +2,12 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 import networkx as nx
-from RDG import RDG, Node, Edge
+from RDG import RDG
 
 # from RDG_to_file import save, load, newick_to_file
 from matplotlib.gridspec import GridSpec
 
-from ete3 import Tree, NodeStyle, faces, AttrFace, TreeStyle
-from rich import inspect
+from ete3 import Tree, TreeStyle
 
 
 def layout_graph(graph: RDG, branch_height=1) -> dict:
