@@ -53,6 +53,7 @@ def parse_sequence_into_translated_regions(
 
     stops = ["TAA", "TAG", "TGA"]
 
+    # Find ORFs in each frame. Find start codon and continue to next stop codon
     orf_sequences = []
     for i in range(len(sequence)):
         if sequence[i : i + 3] in starts:
@@ -64,12 +65,10 @@ def parse_sequence_into_translated_regions(
                     break
 
     orfs = []
-    counter = 1
     for orf in orf_sequences:
         start_codon_position = sequence.find(orf)
-        stop_codon_position = sequence.find(orf) + len(orf)
+        stop_codon_position = start_codon_position + len(orf)
         orfs.append((start_codon_position, stop_codon_position))
-        counter += 1
     return orfs
 
 

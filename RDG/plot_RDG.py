@@ -18,8 +18,6 @@ def layout_graph(graph: RDG, branch_height=1) -> dict:
     pos = {}
 
     paths = graph.get_unique_paths()
-    for i in paths:
-        print(i)
     node_y_positions = {paths[0][0]: 0}
 
     branch_points = graph.get_branch_points()
