@@ -2330,8 +2330,7 @@ class RDG(object):
         # Base case: If the current node is an endpoint, return its label and branch length
         if node in self.get_endpoints():
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
-            branch_lengths = [self.nodes[i].node_start for i in path_to_root][:-1]
-            branch_length = self.nodes[node].node_start - sum(branch_lengths)
+            branch_length = self.nodes[node].node_start - self.nodes[path_to_root[-2]].node_start
             return f"{node}:{branch_length}"
 
         # Recursive case: Build the Newick string for the children of the current node
@@ -2344,14 +2343,12 @@ class RDG(object):
             child_newick_strings.append(child_newick)
 
         # Combine the Newick strings for the children with the current node
-        parent_position = self.nodes[node].node_start
         newick = f"({','.join(child_newick_strings)}){node}"
 
-        # Calculate branch length based on the difference in 'position' values
+        # Calculate branch length based on the difference between node start and upstream node start
         if root != node:
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
-            branch_lengths = [self.nodes[i].node_start for i in path_to_root]
-            branch_length = branch_lengths[-1]
+            branch_length = self.nodes[node].node_start - self.nodes[path_to_root[-2]].node_start
             newick += f":{branch_length}"
 
         # If the current node is the root, append the final semicolon
