@@ -44,7 +44,7 @@ def test_node_key():
         nodes_in=[],
         nodes_out=[],
     )
-    assert node.get_node_key() == node_key
+    assert node.key == node_key
 
 
 def test_node_type():
@@ -59,4 +59,4 @@ def test_node_type():
         nodes_in=[],
         nodes_out=[],
     )
-    assert node.get_node_type() == "stop"
+    assert node.node_type == "stop"

@@ -16,12 +16,46 @@ for testing and development.
 
 """
 
+from enum import Enum
+from typing import Tuple
 
-class Node(object):
+class NodeType(Enum):
+    FIVE_PRIME = "5_prime"
+    THREE_PRIME = "3_prime"
+    START = "start"
+    STOP = "stop"
+    FRAMESHIFT = "frameshift"
+    READTHROUGH_STOP = "readthrough_stop"
+
+
+class EdgeType(Enum):
+    TRANSLATED = "translated"
+    UNTRANSLATED = "untranslated"
+
+
+class Node:
+    """
+    Represents a node in a decision graph.
+
+    Attributes:
+        key (str): A unique identifier for the node.
+        node_type (NodeType): Type of the node, specifying its function or role.
+        input_edges (list): List of edges incoming to the node.
+        output_edges (list): List of edges outgoing from the node.
+        input_nodes (list): List of nodes connected to the input edges.
+        output_nodes (list): List of nodes connected to the output edges.
+        node_start (int): Position of the node within the sequence.
+        frame (int): Reading frame of the node within the sequence.
+
+    Methods:
+        get_node_key(): Get the key of the node.
+        get_node_type(): Get the type of the node.
+    """
+
     def __init__(
         self,
         key,
-        node_type,
+        node_type: NodeType,
         position,
         edges_in=[],
         edges_out=[],
@@ -30,18 +64,8 @@ class Node(object):
     ):
         self.key = key
 
-        valid_node_types = [
-            "5_prime",
-            "3_prime",
-            "start",
-            "stop",
-            "frameshift",
-            "readthrough_stop",
-        ]
-        if node_type not in valid_node_types:
-            raise ValueError(
-                f"Node type ({node_type}) not valid. Valid types are {valid_node_types}"
-            )
+        if node_type not in NodeType:
+            raise ValueError(f"Invalid node type: {node_type}")
 
         self.node_type = node_type
         self.input_edges = edges_in
@@ -49,24 +73,76 @@ class Node(object):
         self.input_nodes = nodes_in
         self.output_nodes = nodes_out
         self.node_start = position
-        self.frame = self.node_start % 3
+
+    @property
+    def frame(self) -> int:
+        """
+        Get the reading frame of the node within the sequence.
+
+        Returns:
+            int: The reading frame of the node.
+        """
+        return self.node_start % 3
 
     def get_node_key(self):
+        """
+        Get the key of the node.
+
+        Returns:
+            str: The key of the node.
+        """
         return self.key
 
     def get_node_type(self):
+        """
+        Get the type of the node.
+
+        Returns:
+            NodeType: The type of the node.
+        """
         return self.node_type
 
 
-class Edge(object):
-    def __init__(self, key, edge_type, from_node, to_node, coordinates):
+class Edge:
+    """
+    Represents an edge in a decision graph.
+
+    Attributes:
+        key (str): A unique identifier for the edge.
+        edge_type (str): Type of the edge, specifying its function or role.
+        from_node (Node): The source node of the edge.
+        to_node (Node): The destination node of the edge.
+        coordinates (Tuple[int, int]): Tuple representing the start and stop positions of the edge.
+
+    Methods:
+        get_frame(): Get the reading frame of the edge within the sequence.
+    """
+
+    def __init__(self, key: str, edge_type: str, from_node: Node, to_node: Node, coordinates: Tuple[int, int]):
+        """
+        Initializes an Edge instance.
+
+        Parameters:
+            key (str): A unique identifier for the edge.
+            edge_type (str): Type of the edge, specifying its function or role.
+            from_node (Node): The source node of the edge.
+            to_node (Node): The destination node of the edge.
+            coordinates (Tuple[int, int]): Tuple representing the start and stop positions of the edge.
+        """
         self.key = key
         self.edge_type = edge_type
         self.from_node = from_node
         self.to_node = to_node
         self.coordinates = coordinates
 
-    def get_frame(self):
+    @property
+    def frame(self) -> int:
+        """
+        Get the reading frame of the edge within the sequence.
+
+        Returns:
+            int: The reading frame of the edge.
+        """
         return self.coordinates[0] % 3
 
 
@@ -1151,23 +1227,7 @@ class RDG(object):
             return upstream_node
 
 
-"""
-This script contains the RDG class and associated classes for nodes and edges.
 
-The RDG class is the main class for the RDG package. It contains methods for
-creating, loading, and saving RDGs. It also contains methods for adding and
-removing nodes and edges from the graph.
-
-The Node class is a class for nodes in the RDG. It contains methods for
-getting information about the node.
-
-The Edge class is a class for edges in the RDG. It contains methods for
-getting information about the edge.
-
-This is the first test implementation of the RDG concept and is primarily intended
-for testing and development. 
-
-"""
 
 
 class Node(object):
@@ -1203,12 +1263,6 @@ class Node(object):
         self.output_nodes = nodes_out
         self.node_start = position
         self.frame = self.node_start % 3
-
-    def get_node_key(self):
-        return self.key
-
-    def get_node_type(self):
-        return self.node_type
 
 
 class Edge(object):
