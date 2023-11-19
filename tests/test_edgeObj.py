@@ -28,4 +28,4 @@ def test_get_frame():
         to_node=1,
         coordinates=(1, 999),
     )
-    assert edge.get_frame() == 1
+    assert edge.frame == 1

@@ -1,18 +1,14 @@
 from RDG import RDG, Node
 
-import unittest
+import pytest
 
 
 def Node_types_error():
     node = Node(1, "error", (1, 1))
 
-
-class TestNode(unittest.TestCase):
-    def test(self):
-        with self.assertRaises(Exception) as context:
-            Node_types_error()
-
-        self.assertTrue("not valid. Valid types are" in str(context.exception))
+def test_node_types_error():
+    with pytest.raises(ValueError, match="Invalid node type: error"):
+        Node_types_error()
 
 
 def test_node_init():
