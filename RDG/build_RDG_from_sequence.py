@@ -1,6 +1,6 @@
 from RDG import RDG
 from progress.bar import Bar
-from plot_RDG import plot
+from RDG.plot_RDG import plot
 
 # from profilestats import profile
 
@@ -62,7 +62,6 @@ def parse_sequence_into_translated_regions(
                     if len("".join(orf)) > min_length:
                         orf_sequences.append("".join(orf))
                     break
-
     orfs = []
     counter = 1
     for orf in orf_sequences:
