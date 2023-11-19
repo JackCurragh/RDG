@@ -2,8 +2,7 @@ from pathlib import Path
 from typing import List, Tuple, Set
 from collections import defaultdict
 from RDG import RDG
-from rich.progress import Bar
-
+from rich.progress import Progress
 
 def extract_orfs(
     sequence: str,
@@ -96,7 +95,8 @@ def build_graphs_from_fasta(
         orfs = extract_orfs(sequence, starts=start_codons, min_length=min_length)
         dg = RDG(name=sequence_name, locus_stop=len(sequence))
 
-        with Bar(f"Building graph for {sequence_name}...") as bar:
+        with Progress() as progress:
+            task = progress.add_task(f"[cyan]Building graph for {sequence_name}...", total=len(orfs))
             for orf_start, orf_stop in sorted(orfs):
                 dg.add_open_reading_frame(
                     orf_start,
@@ -104,8 +104,7 @@ def build_graphs_from_fasta(
                     reinitiation=reinitiation,
                     upstream_limit=upstream_limit,
                 )
-                bar.next()
-
+                progress.update(task, advance=1)
         result_graphs.append(dg)
 
     return result_graphs
