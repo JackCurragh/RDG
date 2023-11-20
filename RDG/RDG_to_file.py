@@ -97,7 +97,6 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
     except Exception as ex:
         raise Exception("Error during loading data:", ex)
 
-    dg = RDG()
     nodes = {}
     for key in graph_dict["nodes"]:
         nodes[key] = Node(
@@ -121,8 +120,8 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
             graph_dict["edges"][key]["coordinates"],
         )
 
-    dg = dg.Load(
-        locus_name=locus,
+    dg = RDG(
+        name=locus,
         locus_start=graph_dict["locus_start"],
         locus_stop=graph_dict["locus_stop"],
         nodes=nodes,

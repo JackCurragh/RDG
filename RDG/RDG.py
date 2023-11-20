@@ -17,7 +17,7 @@ for testing and development.
 """
 
 from enum import Enum
-from typing import Tuple
+from typing import Tuple, Dict, List
 
 class NodeType(Enum):
     FIVE_PRIME = "5_prime"
@@ -128,88 +128,67 @@ class Edge:
         return self.coordinates[0] % 3
     
 
-class RDG(object):
-    def __init__(self, locus_stop: int = 1000, name: str = "name"):
+class RDG:
+    def __init__(self, locus_start: int = 0, locus_stop: int = 1000, name: str = "name", nodes=None, edges=None):
         """
-        Initialise a fresh RDG object
+        Initialize a fresh RDG object or update an existing one.
 
         Parameters:
         -----------
-        locus_stop: int length of the locus in bp
-        name: str name of the locus
-
-        """
-        self.locus = name
-        self.locus_start = 0
-        self.locus_stop = locus_stop
-
-        transcript_length = locus_stop - self.locus_start
-
-        self.nodes = {
-            1: Node(
-                key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[2]
-            ),
-            2: Node(
-                key=2,
-                node_type="3_prime",
-                position=transcript_length,
-                edges_in=[1],
-                nodes_in=[1],
-            ),
-        }
-
-        self.edges = {
-            1: Edge(
-                1,
-                "untranslated",
-                from_node=1,
-                to_node=2,
-                coordinates=(1, transcript_length - 1),
-            )
-        }
-
-    def Load(
-        self,
-        locus_name: str = "unnamed",
-        locus_start: int = 0,
-        locus_stop: int = 1000,
-        nodes: dict = None,
-        edges: dict = None,
-    ):
-        """
-        Create a RDG from the given paramaters
-
-        Parameters:
-        -----------
-        locus_name: str name of the locus
-        locus_start: int start of the locus in bp
-        locus_stop: int stop of the locus in bp
-        nodes: dict of nodes. Keys are node keys, values are Node objects
-        edges: dict of edges. Keys are edge keys, values are Edge objects
+        locus_start: int
+            Start of the locus in base pairs.
+        locus_stop: int
+            Length of the locus in base pairs.
+        name: str
+            Name of the locus.
+        nodes: dict, optional
+            Dictionary of nodes. Keys are node keys, values are Node objects.
+        edges: dict, optional
+            Dictionary of edges. Keys are edge keys, values are Edge objects.
 
         Returns:
         --------
         RDG object
         """
+        if nodes is None:
+            # Initialize a new RDG object
+            self.locus: str = name
+            self.locus_start: int = locus_start
+            self.locus_stop: int = locus_stop
+            self.nodes: Dict[int, Node] = {
+                1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[2]),
+                2: Node(
+                    key=2,
+                    node_type="3_prime",
+                    position=self.locus_stop - self.locus_start,
+                    edges_in=[1],
+                    nodes_in=[1],
+                ),
+            }
+            self.edges: Dict[int, Edge] = {
+                1: Edge(
+                    1,
+                    "untranslated",
+                    from_node=1,
+                    to_node=2,
+                    coordinates=(1, self.locus_stop - 1),
+                )
+            }
+        else:
+            self.nodes = nodes
+            self.edges = edges
+            self.locus = name
+            self.locus_start = locus_start
+            self.locus_stop = locus_stop
+            
+            # Update an existing RDG object
+            if locus_stop <= self.locus_start:
+                raise ValueError("locus_stop must be greater than locus_start")
 
-        if not nodes or not edges:
-            raise ValueError(
-                "nodes and edges must be provided to load a graph. If you want to create a new graph, use RDG()"
-            )
 
-        if locus_stop <= locus_start:
-            raise ValueError("locus_stop must be greater than locus_start")
-
-        self.nodes = nodes
-        self.edges = edges
-        self.locus = locus_name
-        self.locus_start = locus_start
-        self.locus_stop = locus_stop
-        return self
-
-    def load_example(self):
+    def load_example(self) -> 'RDG':
         """
-        Load a basic graph with one ORF
+        Load a basic graph with one ORF.
 
         Returns:
         --------
@@ -218,17 +197,11 @@ class RDG(object):
             locus length = 1000
             orf coordinates = 10, 100
         """
-        nodes = {
-            1: Node(
-                key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]
-            ),
-            2: Node(
-                key=2,
-                node_type="3_prime",
-                position=1000,
-                edges_in=[2],
-                nodes_in=[3],
-            ),
+        g = RDG()
+        
+        g.nodes = {
+            1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]),
+            2: Node(key=2, node_type="3_prime", position=1000, edges_in=[2], nodes_in=[3]),
             3: Node(
                 key=3,
                 node_type="start",
@@ -247,27 +220,18 @@ class RDG(object):
                 nodes_in=[3],
                 nodes_out=[5],
             ),
-            5: Node(
-                key=5,
-                node_type="3_prime",
-                position=1000,
-                edges_in=[4],
-                nodes_in=[4],
-            ),
+            5: Node(key=5, node_type="3_prime", position=1000, edges_in=[4], nodes_in=[4]),
         }
-        edges = {
+        
+        g.edges = {
             1: Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 - 1)),
-            2: Edge(
-                2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 - 1)
-            ),
+            2: Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 - 1)),
             3: Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
-            4: Edge(
-                4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 - 1)
-            ),
+            4: Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 - 1)),
         }
-        g = RDG()
-        g = RDG.Load(g, nodes=nodes, edges=edges)
+
         return g
+    
 
     def get_nodes(self) -> list:
         """
