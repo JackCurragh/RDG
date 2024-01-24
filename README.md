@@ -1,6 +1,9 @@
 # RDG
 Implementation of the Ribosome Decision Graph Concept
 
+# This is the last branch where the RDG package was used as a testing ground for RDG concept development. 
+From now on the push is to create v1.0.0
+
 ## Background 
   <kbd>![Depiction of typical annotation structure ](https://github.com/JackCurragh/RDG/blob/main/images/current_representation.png)</kbd>
   
