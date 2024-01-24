@@ -6,13 +6,13 @@ import unittest
 def test_get_nodes():
     g = RDG()
     g = RDG.load_example(g)
-    assert g.get_nodes() == [1, 2, 3, 4, 5]
+    assert g.get_node_keys() == [1, 2, 3, 4, 5]
 
 
 def test_get_edges():
     g = RDG()
     g = RDG.load_example(g)
-    assert g.get_edges() == [1, 2, 3, 4]
+    assert g.get_edge_keys() == [1, 2, 3, 4]
 
 
 def test_get_edges_from_to():
@@ -25,7 +25,7 @@ def test_remove_node():
     g = RDG()
     g = RDG.load_example(g)
     g.remove_node(3)
-    assert g.get_nodes() == [1, 2, 4, 5]
+    assert g.get_node_keys() == [1, 2, 4, 5]
 
 def test_get_new_node_key():
     g = RDG()

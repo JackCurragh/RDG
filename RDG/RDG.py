@@ -196,10 +196,8 @@ class RDG:
         with:
             locus length = 1000
             orf coordinates = 10, 100
-        """
-        g = RDG()
-        
-        g.nodes = {
+        """        
+        self.nodes = {
             1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]),
             2: Node(key=2, node_type="3_prime", position=1000, edges_in=[2], nodes_in=[3]),
             3: Node(
@@ -223,33 +221,32 @@ class RDG:
             5: Node(key=5, node_type="3_prime", position=1000, edges_in=[4], nodes_in=[4]),
         }
         
-        g.edges = {
+        self.edges = {
             1: Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 - 1)),
             2: Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 - 1)),
             3: Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
             4: Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 - 1)),
         }
 
-        return g
+        return self
     
-
-    def get_nodes(self) -> list:
+    def get_node_keys(self) -> List[int]:
         """
-        Return a list of the nodes from the graph
+        Get the keys of all nodes in the graph.
 
         Returns:
         --------
-        list of Node ids
+        List[int]: A list containing the keys of all nodes.
         """
         return list(self.nodes.keys())
 
-    def get_edges(self) -> list:
+    def get_edge_keys(self) -> List[int]:
         """
-        Return a list of keys of edges in the graph
+        Get the keys of all edges in the graph.
 
         Returns:
         --------
-        list of Edge ids
+        List[int]: A list containing the keys of all edges.
         """
         return list(self.edges.keys())
 
@@ -661,7 +658,7 @@ class RDG:
                 f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})"
             )
 
-        exisiting_edges = self.get_edges()
+        exisiting_edges = self.get_edge_keys()
         clashing_edges = []
         for edge in exisiting_edges:
             if (
@@ -808,7 +805,7 @@ class RDG:
                 f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
             )
 
-        exisiting_edges = self.get_edges()
+        exisiting_edges = self.get_edge_keys()
         clashing_edges = []
         for edge in exisiting_edges:
             if (

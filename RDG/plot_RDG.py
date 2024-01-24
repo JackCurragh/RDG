@@ -208,7 +208,7 @@ def plot(
 
     for edge in G.edges:
         if graph.edges[edges[edge]].edge_type == "translated":
-            frame = graph.edges[edges[edge]].get_frame()
+            frame = graph.edges[edges[edge]].frame
         else:
             frame = None
 
@@ -246,7 +246,7 @@ def plot(
         font_size=15,
         arrows=False,
     )
-    # SRD heights 
+    ## SRD heights 
     # for node, size in node_sizes.items():
     #     if node in translation_starts:
     #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.125), 10, 0.25, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
@@ -257,33 +257,33 @@ def plot(
 
 
    ##  ATF4 heights
-    # for node, size in node_sizes.items():
-    #     if node in translation_starts:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
-    #         ax1.add_patch(rect)
-    #     elif node in translation_stops:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
-    #         ax1.add_patch(rect)
-
-
-#    ##  GPX4 heights
-
-#     for node, size in node_sizes.items():
-#         if node in translation_starts:
-#             rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
-#             ax1.add_patch(rect)
-#         elif node in translation_stops:
-#             rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
-#             ax1.add_patch(rect)
-   ##  PEG10
-
     for node, size in node_sizes.items():
         if node in translation_starts:
-            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
+            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
             ax1.add_patch(rect)
         elif node in translation_stops:
-            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
+            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
             ax1.add_patch(rect)
+
+
+   ##  GPX4 heights
+
+    # for node, size in node_sizes.items():
+    #     if node in translation_starts:
+    #         rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
+    #         ax1.add_patch(rect)
+    #     elif node in translation_stops:
+    #         rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
+    #         ax1.add_patch(rect)
+    
+   ##  PEG10
+    # for node, size in node_sizes.items():
+    #     if node in translation_starts:
+    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
+    #         ax1.add_patch(rect)
+    #     elif node in translation_stops:
+    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
+    #         ax1.add_patch(rect)
 
 
     # plot the orf plot
@@ -324,17 +324,17 @@ if __name__ == "__main__":
         },
     }
 
-    g = RDG(name="SRD5A1 - NM_001047")
-    g.add_open_reading_frame(138, 917)
-    g.add_open_reading_frame(86, 517)
-    g.add_open_reading_frame(112, 438)
+    # g = RDG(name="SRD5A1 - NM_001047")
+    # g.add_open_reading_frame(138, 917)
+    # g.add_open_reading_frame(86, 517)
+    # g.add_open_reading_frame(112, 438)
     # plot(g, color_dict=no_node_color_dict)
 
-    # g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
-    # g.add_open_reading_frame(486, 649)
-    # g.add_open_reading_frame(700, 891, reinitiation=True)
-    # g.add_open_reading_frame(888, 1943, reinitiation=True)
-    # plot(g, color_dict=no_node_color_dict)
+    g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
+    g.add_open_reading_frame(486, 649)
+    g.add_open_reading_frame(700, 891, reinitiation=True)
+    g.add_open_reading_frame(888, 1943, reinitiation=True)
+    plot(g, color_dict=no_node_color_dict)
 
 
     # g = RDG(name="CNOT1", locus_stop=2041)
@@ -355,7 +355,6 @@ if __name__ == "__main__":
     # g.add_open_reading_frame(480, 1458)
     # g.add_frameshift(1426, 2601, -1)
     # plot(g, color_dict=no_node_color_dict, label_nodes=False)
-
 
     plot_ete3(g)
     # # g = RDG()
