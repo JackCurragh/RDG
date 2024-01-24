@@ -1,6 +1,7 @@
 # RDG
 Implementation of the Ribosome Decision Graph Concept
 
+last version with ete3 plotting
 ## Background 
   <kbd>![Depiction of typical annotation structure ](https://github.com/JackCurragh/RDG/blob/main/images/current_representation.png)</kbd>
   
