@@ -64,7 +64,7 @@ class Node:
     ):
         self.key = key
 
-        if node_type not in NodeType:
+        if not NodeType.__contains__(node_type):
             raise ValueError(f"Invalid node type: {node_type}")
 
         self.node_type = node_type

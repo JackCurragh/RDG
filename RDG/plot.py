@@ -280,7 +280,6 @@ if __name__ == "__main__":
     # g.add_frameshift(1426, 2601, -1)
     # plot(g, color_dict=no_node_color_dict, label_nodes=False)
 
-    plot_ete3(g)
     # # g = RDG()
     # # g = RDG.load_example(g)
     # newick = g.newick()
