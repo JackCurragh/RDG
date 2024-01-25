@@ -64,8 +64,8 @@ class Node:
     ):
         self.key = key
 
-        if not NodeType.__contains__(node_type):
-            raise ValueError(f"Invalid node type: {node_type}")
+        # if not NodeType.__contains__(node_type):
+        #     raise ValueError(f"Invalid node type: {node_type}")
 
         self.node_type = node_type
         self.input_edges = edges_in
