@@ -55,7 +55,7 @@ class Node:
     def __init__(
         self,
         key,
-        node_type: NodeType,
+        node_type,
         position,
         edges_in=[],
         edges_out=[],
