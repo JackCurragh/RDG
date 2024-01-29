@@ -64,8 +64,15 @@ class Node:
     ):
         self.key = key
 
-        # if not NodeType.__contains__(node_type):
-        #     raise ValueError(f"Invalid node type: {node_type}")
+        if node_type not in [
+            "5_prime",
+            "3_prime",
+            "start",
+            "stop",
+            "frameshift",
+            "readthrough_stop",
+            ]:
+            raise ValueError(f"Invalid node type: {node_type}")
 
         self.node_type = node_type
         self.input_edges = edges_in

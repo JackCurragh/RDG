@@ -8,6 +8,45 @@ from RDG import RDG
 from matplotlib.gridspec import GridSpec
 
 
+def cladogram_layout(graph: RDG) -> dict:
+    """
+    Method for the cladogram inspired RDG layout
+    
+    :param graph: The RDG object representing the decision graph
+    :type graph: RDG
+    
+    :return: A dictionary representing the layout of the cladogram
+    :rtype: dict 
+    """
+    pos = {} # node: (x, y)
+
+    # endpoints define the height of the graph
+    # it is unclear how to order the nodes to ensure no crossing edges
+    endpoints = graph.get_endpoints()
+    for i, endpoint in enumerate(endpoints):
+        pos[endpoint] = (graph.nodes[endpoint].node_start, i)
+    
+    startpoints = graph.get_startpoints()
+    startpoint_scale = len(endpoints) / (len(startpoints) + 1) 
+    for i, startpoint in enumerate(startpoints):
+        pos[startpoint] = (graph.nodes[startpoint].node_start, i + 1 * startpoint_scale)
+
+    unassigned_nodes = [node for node in graph.nodes if node not in pos]
+
+    for node in endpoints:
+        upstream_nodes = graph.nodes[node].input_nodes
+        for upstream_node in upstream_nodes:
+            if upstream_node not in pos:
+                if graph.nodes[upstream_node].node_type == "stop":
+                    pos[upstream_node] = (graph.nodes[upstream_node].node_start, pos[node][1])
+                    start_node = graph.nodes[upstream_node].input_nodes[0]
+                    pos[start_node] = (graph.nodes[start_node].node_start, pos[node][1]) 
+    
+    for node in graph.nodes:
+        if node not in pos:
+            pos[node] = (graph.nodes[node].node_start, len(endpoints) / 2)
+    return pos
+
 def layout_graph(graph: RDG, branch_height=1) -> dict:
     """
     Method for laying out the graph based on branch points
@@ -79,7 +118,8 @@ def plot(
             orfs_in_frame[orf[1] % 3].append((orf[1], orf[2] - orf[1]))
 
     # position nodes on xy plane
-    pos = layout_graph(graph, branch_height=2)
+    pos = cladogram_layout(graph)
+    # pos = layout_graph(graph, branch_height=2)
 
     # identify feature types for colouring
     endpoints = graph.get_endpoints()
@@ -166,48 +206,34 @@ def plot(
         width=edge_widths,
         edge_color=edge_colors,
         with_labels=label_nodes,
-        alpha=1.0,
+        alpha=0.0,
         font_size=15,
         arrows=False,
     )
-    ## SRD heights 
-    # for node, size in node_sizes.items():
-    #     if node in translation_starts:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.125), 10, 0.25, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
-    #         ax1.add_patch(rect)
-    #     elif node in translation_stops:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.125), 10, 0.25, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
-    #         ax1.add_patch(rect)
 
-
+    for edge in G.edges():
+        source, target = edge
+        rad = 0.2
+        arrowprops=dict(lw=G.edges[(source,target)]['weight'],
+                        arrowstyle="-",
+                        color='blue',
+                        connectionstyle=f"Angle,angleA=0,angleB=90,rad=0.0",
+                        linestyle= '-',
+                        alpha=0.6)
+        ax1.annotate("",
+                    xy=pos[source],
+                    xytext=pos[target],
+                    arrowprops=arrowprops
+                )
    ##  ATF4 heights
-    for node, size in node_sizes.items():
-        if node in translation_starts:
-            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
-            ax1.add_patch(rect)
-        elif node in translation_stops:
-            rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.75), 20, 1.5, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
-            ax1.add_patch(rect)
-
-
-   ##  GPX4 heights
-
     # for node, size in node_sizes.items():
     #     if node in translation_starts:
-    #         rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
+    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.2), 20, 1, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
     #         ax1.add_patch(rect)
     #     elif node in translation_stops:
-    #         rect = patches.Rectangle((pos[node][0] - 2, pos[node][1] - 0.35), 50, 0.7, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
+    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.2), 20, 1, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
     #         ax1.add_patch(rect)
-    
-   ##  PEG10
-    # for node, size in node_sizes.items():
-    #     if node in translation_starts:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_start"], facecolor=color_dict["node_colors"]["translation_start"])
-    #         ax1.add_patch(rect)
-    #     elif node in translation_stops:
-    #         rect = patches.Rectangle((pos[node][0], pos[node][1] - 0.15), 100, 0.3, linewidth=1, edgecolor=color_dict["node_colors"]["translation_stop"], facecolor=color_dict["node_colors"]["translation_stop"])
-    #         ax1.add_patch(rect)
+
 
 
     # plot the orf plot
@@ -259,28 +285,3 @@ if __name__ == "__main__":
     g.add_open_reading_frame(700, 891, reinitiation=True)
     g.add_open_reading_frame(888, 1943, reinitiation=True)
     plot(g, color_dict=no_node_color_dict)
-
-
-    # g = RDG(name="CNOT1", locus_stop=2041)
-    # g.add_open_reading_frame(289, 439)
-    # g.add_open_reading_frame(700, 891, reinitiation=True)
-    # g.add_open_reading_frame(888, 1943, reinitiation=True)
-    # plot(g, color_dict=no_node_color_dict)
-
-    # g = RDG(name="GPX4", locus_stop=788)
-    # g.add_open_reading_frame(69, 381)
-    # g.add_stop_codon_readthrough(
-    #     readthrough_codon_position=381, next_stop_codon_position=581
-    # )
-    # plot(g, color_dict=no_node_color_dict)
-    # print()
-
-    # g = RDG(name="PEG10", locus_stop=3000)
-    # g.add_open_reading_frame(480, 1458)
-    # g.add_frameshift(1426, 2601, -1)
-    # plot(g, color_dict=no_node_color_dict, label_nodes=False)
-
-    # # g = RDG()
-    # # g = RDG.load_example(g)
-    # newick = g.newick()
-    # print(newick)
