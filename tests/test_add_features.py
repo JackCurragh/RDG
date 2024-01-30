@@ -2,7 +2,7 @@ from RDG import RDG, Node, Edge
 
 import unittest
 
-def test_inserting_orfs_edges():
+def test_inserting_translons_edges():
     g = RDG()
     g = RDG.load_example(g)
     node_key = g.get_new_node_key()
@@ -31,11 +31,11 @@ def test_inserting_orfs_edges():
     )
     g.add_node(start_node)
     g.add_node(stop_node)
-    g.insert_ORF(g.edges[2], start_node, stop_node)
+    g.insert_translon(g.edges[2], start_node, stop_node)
     assert list(g.edges.keys()) == [1, 2, 3, 4, 5, 6, 7]
 
 
-def test_insterting_orfs_nodes():
+def test_insterting_translons_nodes():
     g = RDG()
     g = RDG.load_example(g)
     node_key = g.get_new_node_key()
@@ -64,11 +64,11 @@ def test_insterting_orfs_nodes():
     )
     g.add_node(start_node)
     g.add_node(stop_node)
-    g.insert_ORF(g.edges[2], start_node, stop_node)
+    g.insert_translon(g.edges[2], start_node, stop_node)
     assert list(g.nodes.keys()) == [1, 2, 3, 4, 5, 6, 7, 8]
 
 
-def test_insterting_orfs_branch_points():
+def test_insterting_translons_branch_points():
     g = RDG()
     g = RDG.load_example(g)
     node_key = g.get_new_node_key()
@@ -97,7 +97,7 @@ def test_insterting_orfs_branch_points():
     )
     g.add_node(start_node)
     g.add_node(stop_node)
-    g.insert_ORF(g.edges[2], start_node, stop_node)
+    g.insert_translon(g.edges[2], start_node, stop_node)
 
     branch_points = g.get_branch_points()
 
@@ -111,7 +111,7 @@ def invalid_stop_pos():
     g.add_open_reading_frame(15, 250000)
 
 
-class TestAddORF(unittest.TestCase):
+class TestAddtranslon(unittest.TestCase):
     def test(self):
         with self.assertRaises(Exception) as context:
             invalid_stop_pos()

@@ -195,14 +195,14 @@ class RDG:
 
     def load_example(self) -> 'RDG':
         """
-        Load a basic graph with one ORF.
+        Load a basic graph with one translon.
 
         Returns:
         --------
         RDG object
         with:
             locus length = 1000
-            orf coordinates = 10, 100
+            translon coordinates = 10, 100
         """        
         self.nodes = {
             1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]),
@@ -424,7 +424,7 @@ class RDG:
         new_coordinates: tuple of the form (start, end) of the new coordinates
 
         notes:
-        when inserting an orf into an untranslated edge we update the untranslated edge to now start at the new start codon instead
+        when inserting an translon into an untranslated edge we update the untranslated edge to now start at the new start codon instead
 
         """
         old_from_node = self.edges[edge_key].from_node
@@ -462,7 +462,7 @@ class RDG:
         self.edges[edge_key].coordinates = new_coordinates
         self.edges[edge_key].from_node = new_from_node
 
-    def insert_ORF(self, edge: Edge, start_node: Node, stop_node: Node):
+    def insert_translon(self, edge: Edge, start_node: Node, stop_node: Node):
         """
         Handle inserting node into just one edge including down path.
         Nodes are already inserted in the graph but are not connected. This function connects them
@@ -471,8 +471,8 @@ class RDG:
         Parameters:
         -----------
         edge: Edge object to insert into
-        start_node: Node object of the start codon for the ORF
-        stop_node: Node object of the stop codon for the ORF
+        start_node: Node object of the start codon for the translon
+        stop_node: Node object of the stop codon for the translon
 
         Notes:
         ------
@@ -613,12 +613,12 @@ class RDG:
     ) -> bool:
         """
         look upstream of an edges from node and see if any edges are of type 'translated'
-        used in reinit functionality. Upstream limit refers to the number of ORFs allowed upstream. ie. can the be multiple reinitiation events or just one etc
+        used in reinit functionality. Upstream limit refers to the number of translons allowed upstream. ie. can the be multiple reinitiation events or just one etc
 
         Parameters:
         -----------
         from_node: int key of the node to check
-        upstream_limit: int number of ORFs allowed upstream
+        upstream_limit: int number of translons allowed upstream
 
         Returns:
         --------
@@ -643,9 +643,9 @@ class RDG:
     ):
         """
         Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
-        First finds edges that clash with the new ORF (i.e the start codon is within the range of the edge)
+        First finds edges that clash with the new translon (i.e the start codon is within the range of the edge)
         Clashes are only considered if the edge is not of type 'translated'
-        For each clash it will insert an ORF. To do so it will create:
+        For each clash it will insert an translon. To do so it will create:
             a new start node: the start codon position
             a new stop node: the stop codon position
             a new terminal node: the 3' end of the path
@@ -657,7 +657,7 @@ class RDG:
         start_codon_position: int position of the start codon
         stop_codon_position: int position of the stop codon
         reinitiation: bool whether or not this is allowed to be a reinitiation event
-        upstream_limit: int number of ORFs allowed upstream
+        upstream_limit: int number of translons allowed upstream
 
         """
         if stop_codon_position > self.locus_stop:
@@ -706,7 +706,7 @@ class RDG:
                 )
                 self.add_node(stop_node)
 
-                self.insert_ORF(self.edges[edge], start_node, stop_node)
+                self.insert_translon(self.edges[edge], start_node, stop_node)
 
     def add_stop_codon_readthrough(
         self, readthrough_codon_position: int, next_stop_codon_position: int
@@ -1007,9 +1007,9 @@ class RDG:
                 translation_stops.append(node)
         return translation_stops
 
-    def get_orfs(self) -> list:
+    def get_translons(self) -> list:
         """
-        Return a list of coordinates (start, stop) describing the ORFs in the graph. Frameshift ORFs have the form (start, FS coordinate, stop) even when FS event is negative
+        Return a list of coordinates (start, stop) describing the translons in the graph. Frameshift translons have the form (start, FS coordinate, stop) even when FS event is negative
 
         NOTE: multiple readthroughs are not yet supportd
 
@@ -1019,13 +1019,13 @@ class RDG:
         """
         translation_starts = self.get_start_nodes()
 
-        orfs = []
+        translons = []
         for start in translation_starts:
             downstream_nodes = self.nodes[start].output_nodes
 
             for candidate_stop in downstream_nodes:
                 if self.nodes[candidate_stop].node_type == "stop":
-                    orfs.append(
+                    translons.append(
                         (
                             self.nodes[start].node_start,
                             self.nodes[candidate_stop].node_start,
@@ -1039,26 +1039,26 @@ class RDG:
 
                     for new_candidate_stop in readthrough_downstream_nodes:
                         if self.nodes[new_candidate_stop].node_type == "stop":
-                            orf = (
+                            translon = (
                                 self.nodes[start].node_start,
                                 self.nodes[new_candidate_stop].node_start,
                             )
-                            if orf not in orfs:
-                                orfs.append(orf)
+                            if translon not in translons:
+                                translons.append(translon)
 
                 elif self.nodes[candidate_stop].node_type == "frameshift":
                     fs_downstream_nodes = self.nodes[candidate_stop].output_nodes
                     for new_candidate_stop in fs_downstream_nodes:
                         if self.nodes[new_candidate_stop].node_type == "stop":
-                            orf = (
+                            translon = (
                                 self.nodes[start].node_start,
                                 self.nodes[candidate_stop].node_start,
                                 self.nodes[new_candidate_stop].node_start,
                             )
-                            if orf not in orfs:
-                                orfs.append(orf)
+                            if translon not in translons:
+                                translons.append(translon)
 
-        return orfs
+        return translons
 
     def get_frameshifts(self) -> list:
         """

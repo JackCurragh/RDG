@@ -114,25 +114,25 @@ def test_is_input_edge_translated():
     assert g.is_input_edge_translated(4) == True
     assert g.is_input_edge_translated(3) == False
 
-def test_get_orfs_simple():
+def test_get_translons_simple():
     g = RDG()
     g = RDG.load_example(g)
-    orfs = g.get_orfs()
-    assert orfs == [(10, 100)]
+    translons = g.get_translons()
+    assert translons == [(10, 100)]
 
-def test_get_orfs_w_frameshift():
+def test_get_translons_w_frameshift():
     g = RDG()
     g = RDG.load_example(g)
     g.add_frameshift(30, 40, 1)
-    orfs = g.get_orfs()
-    assert orfs == [(10, 30, 100), (10, 30, 40)]
+    translons = g.get_translons()
+    assert translons == [(10, 30, 100), (10, 30, 40)]
 
-def test_get_orfs_scr():
+def test_get_translons_scr():
     g = RDG()
     g = RDG.load_example(g)
     g.add_stop_codon_readthrough(100, 110)
-    orfs = g.get_orfs()
-    assert orfs == [(10, 100), (10, 110)]
+    translons = g.get_translons()
+    assert translons == [(10, 100), (10, 110)]
 
 def test_get_frameshifts():
     g = RDG()

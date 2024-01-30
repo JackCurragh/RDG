@@ -7,9 +7,9 @@ last version with ete3 plotting
   
 This figure is a schematic showing the anatomy of a coding RNA transcript according to canonical annotation approaches. Each coding transcript has three parts. Two regions, 5' UTR and 3' UTR, are considered to be untranslated and a single coding region is annotated as protein coding (CDS).      
 
-<kbd>![ORF plot showing how multiple coding regions per transcript are annotated](https://github.com/JackCurragh/RDG/blob/main/images/ORF_plot.png)</kbd>
+<kbd>![translon plot showing how multiple coding regions per transcript are annotated](https://github.com/JackCurragh/RDG/blob/main/images/translon_plot.png)</kbd>
 
-The top figure shows the CDS annotation corresponding to the ORF organisation shown on the bottom. 
+The top figure shows the CDS annotation corresponding to the translon organisation shown on the bottom. 
 
 Current approaches for representing multiple coding regions on the same mRNA transcript rely on the generation of two transcripts with the same sequence that differ in CDS annotation. Such a representation distorts the reality by representing the translation of related coding regions as indpendent of each other.
 
