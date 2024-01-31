@@ -257,6 +257,8 @@ def plot(
     ax2.set_ylim(0, max_y)
 
     branch_heights = get_branch_heights(graph, pos)
+    vertical_branch_width = graph.locus_stop * 0.01
+    print(vertical_branch_width)
     for branch in graph.get_branch_points():
         if branch in pos:
             A = get_end_or_branch(graph, graph.nodes[branch].output_nodes[0])
@@ -264,7 +266,7 @@ def plot(
             base_height = min(pos[A][1], pos[B][1])
             rect = patches.Rectangle(
                 (pos[branch][0], base_height),
-                width=20,
+                width=vertical_branch_width,
                 height=branch_heights[branch],
                 linewidth=0.5,
                 edgecolor='#000000',
@@ -280,9 +282,10 @@ def plot(
         base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
 
         height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
+        width = vertical_branch_width/2
         rect = patches.Rectangle(
-            (pos[node][0] - 10, base_height),
-            width=10,
+            (pos[node][0] - width*2, base_height),
+            width=width,
             height=height,
             linewidth=0.5,
             edgecolor='#6d6d6d',
