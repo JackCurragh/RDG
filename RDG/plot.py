@@ -125,33 +125,33 @@ def get_branch_heights(graph, pos):
     return branch_heights
 
 
-def compact_graph(graph) -> (RDG, list):
+def get_reinitiation_nodes(graph) -> (RDG, list):
     '''
-    Remove reinitiation paths recording which stop nodes are
-    reinitiation nodes and which are not
+    identify reinitiation nodes and return the edges that they should
+    reinitiate translation at
 
     :param graph: The RDG object representing the decision graph
     :type graph: RDG
 
-    :return: The compacted RDG
-    :rtype: RDG
-
-    :return: A list of reinitiation nodes
-    :rtype: list
+    :return: A dict of reinitiation nodes
+    :rtype: dict
     '''
-    reinitiation_nodes = []
-    paths = graph.get_unique_paths()
-    for path in paths:
-        start_nodes = [
-            node for node in path if node in graph.get_start_nodes()
-        ]
-        print(path)
-        print("starts: ", start_nodes)
-        if len(start_nodes) > 1:
-            for node in start_nodes[1:]:
-                reinitiation_nodes.append(node)
-                graph.remove_node(node)
-    return graph, reinitiation_nodes
+    reinitiation_nodes = {}
+    non_coding_edges = {
+        edge: graph.edges[edge].coordinates for edge in graph.edges
+        if graph.edges[edge].edge_type == "untranslated"
+            }
+
+    for node in graph.get_stop_nodes():
+        stop_node = graph.nodes[node]
+        for edge in non_coding_edges:
+            if stop_node.node_start > non_coding_edges[edge][0]\
+              and stop_node.node_start < non_coding_edges[edge][1]:
+                if edge != 1:  # ignore the non-coding path
+                    reinitiation_nodes[node] = edge
+                break
+
+    return reinitiation_nodes
 
 
 default_color_dict = {
@@ -201,10 +201,16 @@ def plot(
     :return: The figure and axes objects
     :rtype: tuple
     '''
-    print(graph.nodes.keys())
     if style == "compact":
-        graph, reinitiation_nodes = compact_graph(graph)
-    print(graph.nodes.keys())
+        translons = graph.get_translons()
+        name = graph.locus
+        locus_stop = graph.locus_stop
+        graph = RDG(name=name, locus_stop=locus_stop)
+        for translon in translons:
+            graph.add_open_reading_frame(translon[0], translon[1])
+
+        reinitiation_nodes = get_reinitiation_nodes(graph)
+        print(reinitiation_nodes)
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -265,6 +271,25 @@ def plot(
                 linewidth=0.5,
                 edgecolor='#000000',
                 facecolor='#000000',
+                )
+            ax1.add_patch(rect)
+
+    if style == "compact":
+        for node in reinitiation_nodes:
+            stop_node_coord = pos[node]
+            from_node = graph.edges[reinitiation_nodes[node]].to_node
+
+            reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
+            base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
+
+            height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
+            rect = patches.Rectangle(
+                (pos[node][0] - 10, base_height),
+                width=10,
+                height=height,
+                linewidth=0.5,
+                edgecolor='#6d6d6d',
+                facecolor='#6d6d6d',
                 )
             ax1.add_patch(rect)
 
@@ -361,9 +386,9 @@ if __name__ == "__main__":
     # plot(g, color_dict=no_node_color_dict)
 
     g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
-    g.add_open_reading_frame(200, 233)
+    g.add_open_reading_frame(200, 293)
     g.add_open_reading_frame(486, 1943)
-    g.add_open_reading_frame(700, 891, reinitiation=True)
-    g.add_open_reading_frame(888, 1943, reinitiation=True)
+    g.add_open_reading_frame(700, 891, reinitiation=False)
+    g.add_open_reading_frame(888, 1943, reinitiation=False)
 
     plot(g, color_dict=no_node_color_dict, style="compact")

@@ -1276,7 +1276,6 @@ class RDG:
         -------
         list
         """
-        print(node)
         if node in self.get_startpoints():
             return node
 
