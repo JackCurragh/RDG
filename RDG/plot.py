@@ -175,7 +175,6 @@ def plot(
     show_non_coding=True,
     translon_height=0.5,
     scantron_height=0.1,
-    style="expansive", # "expansive" or "compact"
 ):
     '''
     Generate a plot of the RDG
@@ -201,16 +200,15 @@ def plot(
     :return: The figure and axes objects
     :rtype: tuple
     '''
-    if style == "compact":
-        translons = graph.get_translons()
-        name = graph.locus
-        locus_stop = graph.locus_stop
-        graph = RDG(name=name, locus_stop=locus_stop)
-        for translon in translons:
-            graph.add_open_reading_frame(translon[0], translon[1])
+    translons = graph.get_translons()
+    name = graph.locus
+    locus_stop = graph.locus_stop
+    graph = RDG(name=name, locus_stop=locus_stop)
+    for translon in translons:
+        graph.add_open_reading_frame(translon[0], translon[1])
 
-        reinitiation_nodes = get_reinitiation_nodes(graph)
-        print(reinitiation_nodes)
+    reinitiation_nodes = get_reinitiation_nodes(graph)
+
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -274,24 +272,23 @@ def plot(
                 )
             ax1.add_patch(rect)
 
-    if style == "compact":
-        for node in reinitiation_nodes:
-            stop_node_coord = pos[node]
-            from_node = graph.edges[reinitiation_nodes[node]].to_node
+    for node in reinitiation_nodes:
+        stop_node_coord = pos[node]
+        from_node = graph.edges[reinitiation_nodes[node]].to_node
 
-            reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
-            base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
+        reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
+        base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
 
-            height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
-            rect = patches.Rectangle(
-                (pos[node][0] - 10, base_height),
-                width=10,
-                height=height,
-                linewidth=0.5,
-                edgecolor='#6d6d6d',
-                facecolor='#6d6d6d',
-                )
-            ax1.add_patch(rect)
+        height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
+        rect = patches.Rectangle(
+            (pos[node][0] - 10, base_height),
+            width=10,
+            height=height,
+            linewidth=0.5,
+            edgecolor='#6d6d6d',
+            facecolor='#6d6d6d',
+            )
+        ax1.add_patch(rect)
 
     # handle scaling of translon Y axis offset.
     # If translons are plotted without offset they do not align
@@ -391,4 +388,4 @@ if __name__ == "__main__":
     g.add_open_reading_frame(700, 891, reinitiation=False)
     g.add_open_reading_frame(888, 1943, reinitiation=False)
 
-    plot(g, color_dict=no_node_color_dict, style="compact")
+    plot(g, color_dict=no_node_color_dict)
