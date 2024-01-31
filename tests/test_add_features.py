@@ -2,6 +2,7 @@ from RDG import RDG, Node, Edge
 
 import unittest
 
+
 def test_inserting_translons_edges():
     g = RDG()
     g = RDG.load_example(g)
@@ -128,11 +129,13 @@ def test_add_open_reading_frame():
 
     assert len(branch_points) == 2
 
+
 def invalid_readthrough_stop():
     g = RDG()
     g = RDG.load_example(g)
 
     g.add_stop_codon_readthrough(15, 250000)
+
 
 class TestAddSCR(unittest.TestCase):
     def test(self):
@@ -149,11 +152,13 @@ def test_add_stop_codon_readthrough():
     g.add_stop_codon_readthrough(100, 150)
     assert len(g.nodes) == 7
 
+
 def invalid_frameshift():
     g = RDG()
     g = RDG.load_example(g)
 
     g.add_frameshift(15, 250000, -1)
+
 
 class TestAddFS(unittest.TestCase):
     def test(self):

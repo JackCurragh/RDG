@@ -125,6 +125,35 @@ def get_branch_heights(graph, pos):
     return branch_heights
 
 
+def compact_graph(graph) -> (RDG, list):
+    '''
+    Remove reinitiation paths recording which stop nodes are
+    reinitiation nodes and which are not
+
+    :param graph: The RDG object representing the decision graph
+    :type graph: RDG
+
+    :return: The compacted RDG
+    :rtype: RDG
+
+    :return: A list of reinitiation nodes
+    :rtype: list
+    '''
+    reinitiation_nodes = []
+    paths = graph.get_unique_paths()
+    for path in paths:
+        start_nodes = [
+            node for node in path if node in graph.get_start_nodes()
+        ]
+        print(path)
+        print("starts: ", start_nodes)
+        if len(start_nodes) > 1:
+            for node in start_nodes[1:]:
+                reinitiation_nodes.append(node)
+                graph.remove_node(node)
+    return graph, reinitiation_nodes
+
+
 default_color_dict = {
     "edge_colors": {
         "frame0": (1, 0, 0), "frame1": (0, 1, 0), "frame2": (0, 0, 1)
@@ -146,12 +175,13 @@ def plot(
     show_non_coding=True,
     translon_height=0.5,
     scantron_height=0.1,
+    style="expansive", # "expansive" or "compact"
 ):
     '''
     Generate a plot of the RDG
 
     :param graph: The RDG object representing the decision graph
-    :type graph: RDG
+    :type graph: RDGot
 
     :param color_dict: A dictionary of colors to use for the plot
     :type color_dict: dict
@@ -171,7 +201,10 @@ def plot(
     :return: The figure and axes objects
     :rtype: tuple
     '''
-
+    print(graph.nodes.keys())
+    if style == "compact":
+        graph, reinitiation_nodes = compact_graph(graph)
+    print(graph.nodes.keys())
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -328,9 +361,9 @@ if __name__ == "__main__":
     # plot(g, color_dict=no_node_color_dict)
 
     g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
+    g.add_open_reading_frame(200, 233)
     g.add_open_reading_frame(486, 1943)
     g.add_open_reading_frame(700, 891, reinitiation=True)
     g.add_open_reading_frame(888, 1943, reinitiation=True)
-    print(g.newick())
 
-    plot(g, color_dict=no_node_color_dict)
+    plot(g, color_dict=no_node_color_dict, style="compact")

@@ -11,26 +11,11 @@ getting information about the node.
 The Edge class is a class for edges in the RDG. It contains methods for
 getting information about the edge.
 
-This is the first test implementation of the RDG concept and is primarily intended
-for testing and development. 
-
+This is the first test implementation of the RDG concept and is primarily
+intended for testing and development.
 """
 
-from enum import Enum
 from typing import Tuple, Dict, List
-
-class NodeType(Enum):
-    FIVE_PRIME = "5_prime"
-    THREE_PRIME = "3_prime"
-    START = "start"
-    STOP = "stop"
-    FRAMESHIFT = "frameshift"
-    READTHROUGH_STOP = "readthrough_stop"
-
-
-class EdgeType(Enum):
-    TRANSLATED = "translated"
-    UNTRANSLATED = "untranslated"
 
 
 class Node:
@@ -39,7 +24,7 @@ class Node:
 
     Attributes:
         key (str): A unique identifier for the node.
-        node_type (NodeType): Type of the node, specifying its function or role.
+        node_type (str): Type of the node, specifying its function or role.
         input_edges (list): List of edges incoming to the node.
         output_edges (list): List of edges outgoing from the node.
         input_nodes (list): List of nodes connected to the input edges.
@@ -71,7 +56,7 @@ class Node:
             "stop",
             "frameshift",
             "readthrough_stop",
-            ]:
+        ]:
             raise ValueError(f"Invalid node type: {node_type}")
 
         self.node_type = node_type
@@ -101,13 +86,21 @@ class Edge:
         edge_type (str): Type of the edge, specifying its function or role.
         from_node (Node): The source node of the edge.
         to_node (Node): The destination node of the edge.
-        coordinates (Tuple[int, int]): Tuple representing the start and stop positions of the edge.
+        coordinates (Tuple[int, int]): Tuple representing the start and
+                                        stop positions of the edge.
 
     Methods:
         get_frame(): Get the reading frame of the edge within the sequence.
     """
 
-    def __init__(self, key: str, edge_type: str, from_node: Node, to_node: Node, coordinates: Tuple[int, int]):
+    def __init__(
+            self,
+            key: str,
+            edge_type: str,
+            from_node: Node,
+            to_node: Node,
+            coordinates: Tuple[int, int]
+            ):
         """
         Initializes an Edge instance.
 
@@ -116,7 +109,8 @@ class Edge:
             edge_type (str): Type of the edge, specifying its function or role.
             from_node (Node): The source node of the edge.
             to_node (Node): The destination node of the edge.
-            coordinates (Tuple[int, int]): Tuple representing the start and stop positions of the edge.
+            coordinates (Tuple[int, int]): Tuple representing the start and
+                                            stop positions of the edge.
         """
         self.key = key
         self.edge_type = edge_type
@@ -133,10 +127,17 @@ class Edge:
             int: The reading frame of the edge.
         """
         return self.coordinates[0] % 3
-    
+
 
 class RDG:
-    def __init__(self, locus_start: int = 0, locus_stop: int = 1000, name: str = "name", nodes=None, edges=None):
+    def __init__(
+            self,
+            locus_start: int = 0,
+            locus_stop: int = 1000,
+            name: str = "name",
+            nodes=None,
+            edges=None
+            ):
         """
         Initialize a fresh RDG object or update an existing one.
 
@@ -163,7 +164,13 @@ class RDG:
             self.locus_start: int = locus_start
             self.locus_stop: int = locus_stop
             self.nodes: Dict[int, Node] = {
-                1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[2]),
+                1: Node(
+                    key=1,
+                    node_type="5_prime",
+                    position=0,
+                    edges_out=[1],
+                    nodes_out=[2]
+                    ),
                 2: Node(
                     key=2,
                     node_type="3_prime",
@@ -187,11 +194,10 @@ class RDG:
             self.locus = name
             self.locus_start = locus_start
             self.locus_stop = locus_stop
-            
+
             # Update an existing RDG object
             if locus_stop <= self.locus_start:
                 raise ValueError("locus_stop must be greater than locus_start")
-
 
     def load_example(self) -> 'RDG':
         """
@@ -203,10 +209,22 @@ class RDG:
         with:
             locus length = 1000
             translon coordinates = 10, 100
-        """        
+        """
         self.nodes = {
-            1: Node(key=1, node_type="5_prime", position=0, edges_out=[1], nodes_out=[3]),
-            2: Node(key=2, node_type="3_prime", position=1000, edges_in=[2], nodes_in=[3]),
+            1: Node(
+                key=1,
+                node_type="5_prime",
+                position=0,
+                edges_out=[1],
+                nodes_out=[3]
+                ),
+            2: Node(
+                key=2,
+                node_type="3_prime",
+                position=1000,
+                edges_in=[2],
+                nodes_in=[3]
+                ),
             3: Node(
                 key=3,
                 node_type="start",
@@ -225,18 +243,48 @@ class RDG:
                 nodes_in=[3],
                 nodes_out=[5],
             ),
-            5: Node(key=5, node_type="3_prime", position=1000, edges_in=[4], nodes_in=[4]),
+            5: Node(
+                key=5,
+                node_type="3_prime",
+                position=1000,
+                edges_in=[4],
+                nodes_in=[4]
+                ),
         }
-        
+
         self.edges = {
-            1: Edge(1, "untranslated", from_node=1, to_node=3, coordinates=(1, 10 - 1)),
-            2: Edge(2, "untranslated", from_node=3, to_node=2, coordinates=(11, 1000 - 1)),
-            3: Edge(3, "translated", from_node=3, to_node=4, coordinates=(11, 100)),
-            4: Edge(4, "untranslated", from_node=4, to_node=5, coordinates=(101, 1000 - 1)),
+            1: Edge(
+                1,
+                "untranslated",
+                from_node=1,
+                to_node=3,
+                coordinates=(1, 10 - 1)
+                ),
+            2: Edge(
+                2,
+                "untranslated",
+                from_node=3,
+                to_node=2,
+                coordinates=(11, 1000 - 1)
+                ),
+            3: Edge(
+                3,
+                "translated",
+                from_node=3,
+                to_node=4,
+                coordinates=(11, 100)
+                ),
+            4: Edge(
+                4,
+                "untranslated",
+                from_node=4,
+                to_node=5,
+                coordinates=(101, 1000 - 1)
+                ),
         }
 
         return self
-    
+
     def get_node_keys(self) -> List[int]:
         """
         Get the keys of all nodes in the graph.
@@ -263,7 +311,7 @@ class RDG:
 
         Returns:
         --------
-        dict Keys are tuples of the form (from_node_id, to_node_id) Values are edge ids
+        dict Keys: tuples: (from_node_id, to_node_id) Values: edge ids
         """
         return {
             (self.edges[edge].from_node, self.edges[edge].to_node): edge
@@ -300,7 +348,8 @@ class RDG:
 
     def get_key_from_position(self, position, node_type) -> list:
         """
-        Return the node key for the node of specified type at the stated position
+        Return the node key for the node of specified type at the
+        stated position
 
         Parameters:
         -----------
@@ -320,7 +369,9 @@ class RDG:
         }
         nodes = []
         if valid_nodes == {}:
-            raise ValueError(f"There are no nodes of type '{node_type}' in the graph")
+            raise ValueError(
+                f"There are no nodes of type '{node_type}' in the graph"
+                )
         else:
             for node in valid_nodes:
                 if valid_nodes[node].node_start == position:
@@ -329,12 +380,13 @@ class RDG:
                 return nodes
             else:
                 raise ValueError(
-                    f"There is no node of type '{node_type}' at position {position}"
+                    f"No node of type '{node_type}' at position {position}"
                 )
 
     def remove_edge(self, edge_key):
         """
-        Remove the edge with the given key from the graph also removing references from adjacent nodes
+        Remove the edge with the given key from the graph also removing
+        references from adjacent nodes
 
         Does not remove nodes that are no longer connected to any other nodes
 
@@ -380,7 +432,6 @@ class RDG:
 
         self.edges[edge.key] = edge
 
-
     def add_node(self, node):
         """
         Introduce nodes and references with the a node.
@@ -396,7 +447,8 @@ class RDG:
 
     def remove_node(self, node_key: int):
         """
-        Remove the node with the given key from the graph also removing references from adjacent edges
+        Remove the node with the given key from the graph also removing
+        references from adjacent edges
 
         Does not remove edges that are no longer connected to any other nodes
 
@@ -412,9 +464,16 @@ class RDG:
                 self.remove_edge(edge)
             self.nodes.pop(node_key)
 
-    def update_edge(self, edge_key, new_from_node, new_to_node, new_coordinates):
+    def update_edge(
+            self,
+            edge_key,
+            new_from_node,
+            new_to_node,
+            new_coordinates
+            ):
         """
-        Update the edge with the given key with the new from and to nodes and coordinates
+        Update the edge with the given key with the new from and to
+        nodes and coordinates
 
         Parameters:
         -----------
@@ -424,7 +483,8 @@ class RDG:
         new_coordinates: tuple of the form (start, end) of the new coordinates
 
         notes:
-        when inserting an translon into an untranslated edge we update the untranslated edge to now start at the new start codon instead
+        when inserting an translon into an untranslated edge we update the
+        untranslated edge to now start at the new start codon instead
 
         """
         old_from_node = self.edges[edge_key].from_node
@@ -465,8 +525,8 @@ class RDG:
     def insert_translon(self, edge: Edge, start_node: Node, stop_node: Node):
         """
         Handle inserting node into just one edge including down path.
-        Nodes are already inserted in the graph but are not connected. This function connects them
-        and updates the edges and nodes as necessary
+        Nodes are already inserted in the graph but are not connected. This
+        function connects them and updates the edges and nodes as necessary
 
         Parameters:
         -----------
@@ -476,13 +536,20 @@ class RDG:
 
         Notes:
         ------
-        Results in the creation of three new edges and two new nodes for the coding branch
-        The non-coding branch is updated to now start at the start codon
+        Results in the creation of three new edges and two new nodes for the
+        coding branch. The non-coding branch is updated to now start at the
+        start codon
 
         """
-        five_prime_edge_coords = (edge.coordinates[0], start_node.node_start - 1)
-        coding_edge_coords = (start_node.node_start, stop_node.node_start)
-        three_prime_edge_coords = (stop_node.node_start + 1, self.locus_stop)
+        five_prime_edge_coords = (
+            edge.coordinates[0], start_node.node_start - 1
+            )
+        coding_edge_coords = (
+            start_node.node_start, stop_node.node_start
+            )
+        three_prime_edge_coords = (
+            stop_node.node_start + 1, self.locus_stop
+            )
 
         edge_key = self.get_new_edge_key()
         five_prime = Edge(
@@ -547,7 +614,8 @@ class RDG:
 
         Returns:
         --------
-        boolean: True if an edge entering this node is translated, False otherwise
+        boolean: True if an edge entering this node is translated,
+                False otherwise
         """
         input_edges = self.nodes[node].input_edges
         boolean = False
@@ -612,8 +680,10 @@ class RDG:
         self, from_node: int, upstream_limit: int = 1
     ) -> bool:
         """
-        look upstream of an edges from node and see if any edges are of type 'translated'
-        used in reinit functionality. Upstream limit refers to the number of translons allowed upstream. ie. can the be multiple reinitiation events or just one etc
+        look upstream of an edges from node and see if any edges are of type
+        'translated' used in reinitiation functionality. Upstream limit refers
+        to the number of translons allowed upstream. ie. can the be multiple
+        reinitiation events or just one etc
 
         Parameters:
         -----------
@@ -622,11 +692,12 @@ class RDG:
 
         Returns:
         --------
-        boolean: True if the number of translated edges upstream is greater than the upstream limit, False otherwise
+        boolean: True if the number of translated edges upstream is greater
+                than the upstream limit, False otherwise
         """
-        edge_path_to_node_from_root = self.root_to_node_of_acyclic_edge_path(from_node)
+        edge_path_to_node = self.root_to_node_of_acyclic_edge_path(from_node)
         number_of_translated_regions = 0
-        for edge in edge_path_to_node_from_root:
+        for edge in edge_path_to_node:
             if self.edges[edge].edge_type == "translated":
                 number_of_translated_regions += 1
 
@@ -642,36 +713,44 @@ class RDG:
         upstream_limit: int = 0,
     ):
         """
-        Handles all operations related to adding a new decision to the graph. Includes objects in graph and corrects all objects involved
-        First finds edges that clash with the new translon (i.e the start codon is within the range of the edge)
+        Handles all operations related to adding a new decision to the graph.
+        Includes objects in graph and corrects all objects involved
+        First finds edges that clash with the new translon
+        (i.e the start codon is within the range of the edge)
         Clashes are only considered if the edge is not of type 'translated'
         For each clash it will insert an translon. To do so it will create:
             a new start node: the start codon position
             a new stop node: the stop codon position
             a new terminal node: the 3' end of the path
             a new coding edge: from the start node to the stop node
-            2 new 3' edges. One from the stop node to the new terminal node and one from the start node to the old terminal node
+            2 new 3' edges. One from the stop node to the new terminal node
+            and one from the start node to the old terminal node
 
         Parameters:
         -----------
         start_codon_position: int position of the start codon
         stop_codon_position: int position of the stop codon
-        reinitiation: bool whether or not this is allowed to be a reinitiation event
+        reinitiation: bool whether or not this is allowed to be a
+            reinitiation event
         upstream_limit: int number of translons allowed upstream
 
         """
         if stop_codon_position > self.locus_stop:
             raise Exception(
-                f"Next in frame stop codon ({stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+                f"""
+                Next in frame stop codon ({stop_codon_position}) is outside
+                of sequence (length {self.locus_stop})
+                """
             )
 
-        exisiting_edges = self.get_edge_keys()
+        existing_edges = self.get_edge_keys()
         clashing_edges = []
-        for edge in exisiting_edges:
+        for edge in existing_edges:
+            edge_obj = self.edges[edge]
             if (
                 start_codon_position
                 in range(
-                    self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]
+                    edge_obj.coordinates[0], edge_obj.coordinates[1]
                 )
                 and self.edges[edge].edge_type != "translated"
             ):
@@ -712,10 +791,13 @@ class RDG:
         self, readthrough_codon_position: int, next_stop_codon_position: int
     ):
         """
-        Handles all operations related to adding a new decision to the graph at a stop codon. Includes objects in graph and corrects all objects involved
+        Handles all operations related to adding a new decision to the graph
+        at a stop codon. Includes objects in graph and corrects all objects
+        involved
 
-        Here the stop node at the specified position becomes a branch point and a new stop node is added downstream. The edges eminating from the old stop node
-        go to new stop node and a old terminal node.
+        Here the stop node at the specified position becomes a branch point
+        and a new stop node is added downstream. The edges emanating from the
+        old stop node go to new stop node and a old terminal node.
 
         Parameters:
         -----------
@@ -725,7 +807,10 @@ class RDG:
         """
         if next_stop_codon_position > self.locus_stop:
             raise Exception(
-                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+                f"""
+                Next in frame stop codon ({next_stop_codon_position}) is
+                outside of sequence (length {self.locus_stop})
+                """
             )
 
         readthrough_codon_keys = self.get_key_from_position(
@@ -749,7 +834,6 @@ class RDG:
             self.add_node(new_stop_node)
 
             coding_edge_key = self.get_new_edge_key()
-            print(self.nodes[readthrough_key].node_start)
             coding = Edge(
                 key=coding_edge_key,
                 edge_type="translated",
@@ -764,7 +848,9 @@ class RDG:
 
             # Handle 3' edge from new stop to new terminal node
             terminal_node_key = self.get_new_node_key()
-            three_prime_terminal_key = self.nodes[readthrough_key].output_nodes[0]
+            three_prime_terminal_key = self.nodes[
+                readthrough_key
+                ].output_nodes[0]
 
             terminal_node_key = self.get_new_node_key()
             terminal_node = Node(
@@ -795,34 +881,41 @@ class RDG:
         """
         Handles adding a frameshifting event to the graph.
 
-        Frameshifts can only be added to translated edges. If the frameshift is added to a translated edge,
-          the edge is split into two edges. The first edge is the edge up from the frameshift position to the stop.
-          The second edge is the original edge from the frameshift position to the stop codon. The first edge is
-          then translated and the second edge is untranslated.
+        Frameshifts can only be added to translated edges. If the frameshift
+        is added to a translated edge, the edge is split into two edges. The
+        first edge is the edge up from the frameshift position to the stop.
+        The second edge is the original edge from the frameshift position
+        to the stop codon. The first edge is then translated and the second
+        edge is untranslated.
 
         Parameters:
         -----------
         fs_position: int position of the frameshift
-        next_stop_codon_position: int position of the next stop codon after the frameshift
+        next_stop_codon_position: int position of the next stop codon after
+        the frameshift
         shift: int number of bases to shift by (-1, +1 etc.)
         """
 
         if next_stop_codon_position > self.locus_stop:
             raise Exception(
-                f"Next in frame stop codon ({next_stop_codon_position}) is outside of sequence (length {self.locus_stop})"
+                f"""
+                Next in frame stop codon ({next_stop_codon_position}) is
+                outside of sequence (length {self.locus_stop})
+                """
             )
 
-        exisiting_edges = self.get_edge_keys()
+        existing_edges = self.get_edge_keys()
         clashing_edges = []
-        for edge in exisiting_edges:
+        for edge in existing_edges:
+            edge_obj = self.edges[edge]
             if (
                 fs_position
                 in range(
-                    self.edges[edge].coordinates[0], self.edges[edge].coordinates[1]
+                    edge_obj.coordinates[0], edge_obj.coordinates[1]
                 )
-                and self.edges[edge].edge_type == "translated"
+                and edge_obj.edge_type == "translated"
             ):
-                upstream_node = self.edges[edge].from_node
+                upstream_node = edge_obj.from_node
                 clashing_edges.append((edge, upstream_node))
 
         for edge, upstream_node in clashing_edges:
@@ -859,7 +952,8 @@ class RDG:
                 to_node_key=old_stop_node_key,
             )
 
-            # update the upstream node and old stop node so they have correct references reflecting the addtion of a FS
+            # update the upstream node and old stop node so they have correct
+            # references reflecting the addition of a FS
             self.nodes[upstream_node].output_nodes.remove(old_stop_node_key)
             self.nodes[upstream_node].output_nodes.append(shift_node.key)
 
@@ -901,7 +995,8 @@ class RDG:
                 to_node_key=new_stop_node_key,
             )
 
-            # Add new terminal node and edge to that node from the new stop node
+            # Add new terminal node and edge to that node
+            # from the new stop node
             new_terminal_key = self.get_new_node_key()
             new_terminal_node = Node(
                 key=new_terminal_key,
@@ -920,7 +1015,10 @@ class RDG:
                 edge_type="untranslated",
                 from_node=new_stop_node_key,
                 to_node=new_terminal_key,
-                coordinates=(new_stop_node.node_start, new_terminal_node.node_start),
+                coordinates=(
+                    new_stop_node.node_start,
+                    new_terminal_node.node_start
+                    ),
             )
             self.add_edge(
                 new_three_prime_edge,
@@ -930,7 +1028,8 @@ class RDG:
 
     def get_branch_points(self) -> list:
         """
-        Return a list of nodes that are branch points (i.e have more than 1 output edge)
+        Return a list of nodes that are branch points
+        (i.e have more than 1 output edge)
 
         Returns
         -------
@@ -944,7 +1043,8 @@ class RDG:
 
     def get_endpoints(self) -> list:
         """
-        Return list of terminal node keys. These nodes have no output edges as they are the end of the path through the graph
+        Return list of terminal node keys. These nodes have no output edges as
+        they are the end of the path through the graph
 
         Returns
         -------
@@ -961,7 +1061,9 @@ class RDG:
 
     def get_startpoints(self) -> list:
         """
-        Return list of start node keys. These nodes have no input edges as they are the start of the path through the graph (i.e the 5' end of the locus or TSS)
+        Return list of start node keys. These nodes have no input edges as
+        they are the start of the path through the graph (i.e the 5' end of
+        the locus or TSS)
 
         Returns
         -------
@@ -978,7 +1080,8 @@ class RDG:
 
     def get_start_nodes(self) -> list:
         """
-        Return translation start keys. These nodes have 2 output edges. One for where translation starts at that site and one for where it doesn't
+        Return translation start keys. These nodes have 2 output edges. One
+        for where translation starts at that site and one for where it doesn't
 
         Returns
         -------
@@ -995,7 +1098,8 @@ class RDG:
 
     def get_stop_nodes(self) -> list:
         """
-        Return translation stop keys. These may have 1 or 2 output edges. If they have 2 output edges then they are readthrough cases
+        Return translation stop keys. These may have 1 or 2 output edges.
+        If they have 2 output edges then they are readthrough cases
 
         Returns
         -------
@@ -1009,9 +1113,11 @@ class RDG:
 
     def get_translons(self) -> list:
         """
-        Return a list of coordinates (start, stop) describing the translons in the graph. Frameshift translons have the form (start, FS coordinate, stop) even when FS event is negative
+        Return a list of coordinates (start, stop) describing the translons in
+        the graph. Frameshift translons have the form (start, FS coordinate,
+        stop) even when FS event is negative
 
-        NOTE: multiple readthroughs are not yet supportd
+        NOTE: multiple readthroughs are not yet supported
 
         Returns
         -------
@@ -1047,7 +1153,10 @@ class RDG:
                                 translons.append(translon)
 
                 elif self.nodes[candidate_stop].node_type == "frameshift":
-                    fs_downstream_nodes = self.nodes[candidate_stop].output_nodes
+                    fs_downstream_nodes = self.nodes[
+                        candidate_stop
+                        ].output_nodes
+
                     for new_candidate_stop in fs_downstream_nodes:
                         if self.nodes[new_candidate_stop].node_type == "stop":
                             translon = (
@@ -1076,7 +1185,8 @@ class RDG:
 
     def get_unique_paths(self) -> list:
         """
-        Return a list of lists of nodes that describe the unique paths through the graph
+        Return a list of lists of nodes that describe the unique
+        paths through the graph
 
         Returns
         -------
@@ -1166,6 +1276,7 @@ class RDG:
         -------
         list
         """
+        print(node)
         if node in self.get_startpoints():
             return node
 
@@ -1192,7 +1303,8 @@ class RDG:
         --------
         str: Newick representation of the graph
         """
-        # When the function is called initially without a node, use the startpoint
+        # When the function is called initially without a node,
+        # use the startpoint
         if node is None:
             startpoints = self.get_startpoints()
             if len(startpoints) > 1:
@@ -1200,16 +1312,20 @@ class RDG:
             node = startpoints[0]
             root = node
 
-        # Base case: If the current node is an endpoint, return its label and branch length
+        # Base case: If the current node is an endpoint,
+        # return its label and branch length
         if node in self.get_endpoints():
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
-            branch_length = self.nodes[node].node_start - self.nodes[path_to_root[-2]].node_start
+            start = self.nodes[path_to_root[-2]].node_start
+            branch_length = start - self.nodes[path_to_root[-2]].node_start
             return f"{node}:{branch_length}"
 
-        # Recursive case: Build the Newick string for the children of the current node
+        # Recursive case: Build the Newick string for the
+        # children of the current node
         children = self.nodes[node].output_nodes
 
-        # Iterate through the children and build the Newick string for each of them
+        # Iterate through the children and build the Newick string
+        # for each of them
         child_newick_strings = []
         for child in children:
             child_newick = self.newick(child, root)
@@ -1218,10 +1334,12 @@ class RDG:
         # Combine the Newick strings for the children with the current node
         newick = f"({','.join(child_newick_strings)}){node}"
 
-        # Calculate branch length based on the difference between node start and upstream node start
+        # Calculate branch length based on the difference between node start
+        # and upstream node start
         if root != node:
             path_to_root = self.root_to_node_of_acyclic_node_path(node)
-            branch_length = self.nodes[node].node_start - self.nodes[path_to_root[-2]].node_start
+            start = self.nodes[node].node_start
+            branch_length = start - self.nodes[path_to_root[-2]].node_start
             newick += f":{branch_length}"
 
         # If the current node is the root, append the final semicolon

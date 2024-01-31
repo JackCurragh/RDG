@@ -6,6 +6,7 @@ import pytest
 def Node_types_error():
     node = Node(1, "error", (1, 1))
 
+
 def test_node_types_error():
     with pytest.raises(ValueError, match="Invalid node type: error"):
         Node_types_error()

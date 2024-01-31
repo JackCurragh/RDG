@@ -1,14 +1,14 @@
-
-
 from RDG import RDG, Node, Edge
 
 import unittest
+
 
 def test_newick():
     g = RDG()
     g = RDG.load_example(g)
     newick = g.newick()
     assert newick == "((2:990,(5:900)4:90)3:10)1;"
+
 
 def test_newick_spare_endpoint():
     g = RDG()
@@ -18,6 +18,7 @@ def test_newick_spare_endpoint():
     newick = g.newick()
 
     assert newick == "(((5:900)4:90,((8:960)7:10,2:970)6:20)3:10)1;"
+
 
 def newick_error_too_many_roots():
     g = RDG()
@@ -31,7 +32,4 @@ class TestLoad(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             newick_error_too_many_roots()
 
-        self.assertTrue(
-            "Graph has more than one startpoint" in str(context.exception)
-        )
-
+        self.assertTrue("Graph has more than one startpoint" in str(context.exception))
