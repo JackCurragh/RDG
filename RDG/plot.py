@@ -258,7 +258,7 @@ def plot(
 
     branch_heights = get_branch_heights(graph, pos)
     vertical_branch_width = graph.locus_stop * 0.01
-    print(vertical_branch_width)
+    # Vertical lines at branch points
     for branch in graph.get_branch_points():
         if branch in pos:
             A = get_end_or_branch(graph, graph.nodes[branch].output_nodes[0])
@@ -274,6 +274,7 @@ def plot(
                 )
             ax1.add_patch(rect)
 
+    # Vertical lines at reinitiation nodes
     for node in reinitiation_nodes:
         stop_node_coord = pos[node]
         from_node = graph.edges[reinitiation_nodes[node]].to_node
@@ -284,7 +285,7 @@ def plot(
         height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
         width = vertical_branch_width/2
         rect = patches.Rectangle(
-            (pos[node][0] - width*2, base_height),
+            (pos[node][0] - width, base_height),
             width=width,
             height=height,
             linewidth=0.5,
