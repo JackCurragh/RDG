@@ -139,7 +139,8 @@ def get_reinitiation_nodes(graph) -> (RDG, list):
     reinitiation_nodes = {}
     non_coding_edges = {
         edge: graph.edges[edge].coordinates for edge in graph.edges
-        if graph.edges[edge].edge_type == "untranslated"
+        if graph.edges[edge].edge_type == "untranslated" and
+        graph.edges[edge].to_node not in graph.get_endpoints()
             }
 
     for node in graph.get_stop_nodes():
@@ -175,6 +176,7 @@ def plot(
     show_non_coding=True,
     translon_height=0.5,
     scantron_height=0.1,
+    label_nodes=False,
 ):
     '''
     Generate a plot of the RDG
@@ -208,7 +210,7 @@ def plot(
         graph.add_open_reading_frame(translon[0], translon[1])
 
     reinitiation_nodes = get_reinitiation_nodes(graph)
-
+    print(reinitiation_nodes)
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -256,6 +258,11 @@ def plot(
     ax1.set_ylim(0, max_y+2)
     ax2.set_ylim(0, max_y)
 
+    # handle scaling of translon Y axis offset.
+    # If translons are plotted without offset they do not align
+    # with the non coding edges
+    translon_scaling = (translon_height / 2) - (scantron_height / 2)
+
     branch_heights = get_branch_heights(graph, pos)
     vertical_branch_width = graph.locus_stop * 0.01
     # Vertical lines at branch points
@@ -282,7 +289,10 @@ def plot(
         reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
         base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
 
-        height = abs(stop_node_coord[1] - reinitiation_edge_coord[1]) * 2
+        stop_node_height = pos[graph.nodes[node].output_nodes[0]][1] - translon_scaling
+
+        height = abs(stop_node_height - reinitiation_edge_coord[1])
+
         width = vertical_branch_width/2
         rect = patches.Rectangle(
             (pos[node][0] - width, base_height),
@@ -293,11 +303,6 @@ def plot(
             facecolor='#6d6d6d',
             )
         ax1.add_patch(rect)
-
-    # handle scaling of translon Y axis offset.
-    # If translons are plotted without offset they do not align
-    # with the non coding edges
-    translon_scaling = (translon_height / 2) - (scantron_height / 2)
 
     edges = graph.get_edges_from_to()
     # loop over edges and make translated edges 10x thicker than
@@ -335,6 +340,18 @@ def plot(
                     )
                 ax1.add_patch(rect)
 
+    if label_nodes:
+    # label nodes in pos
+        for node in pos:
+            ax1.text(
+                pos[node][0],
+                pos[node][1],
+                node,
+                horizontalalignment="center",
+                verticalalignment="center",
+                fontsize=18,
+                color=color_dict["node_colors"]["startpoint"],
+            )
     # plot the translon plot
     height = 10
     yticks_heights = []
@@ -387,10 +404,18 @@ if __name__ == "__main__":
     # g.add_open_reading_frame(112, 438)
     # plot(g, color_dict=no_node_color_dict)
 
-    g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
-    g.add_open_reading_frame(200, 293)
-    g.add_open_reading_frame(486, 1943)
-    g.add_open_reading_frame(700, 891, reinitiation=False)
-    g.add_open_reading_frame(888, 1943, reinitiation=False)
+    # g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
+    # g.add_open_reading_frame(200, 293)
+    # g.add_open_reading_frame(486, 1943)
+    # g.add_open_reading_frame(700, 891, reinitiation=False)
+    # g.add_open_reading_frame(888, 1943, reinitiation=False)
 
+    # plot(g, color_dict=no_node_color_dict)
+
+    g = RDG(name="test")
+    g.add_open_reading_frame(184, 280)
+    g.add_open_reading_frame(264, 273)
+    g.add_open_reading_frame(276, 300)
+    g.add_open_reading_frame(279, 300)
+    g.add_open_reading_frame(322, 523)
     plot(g, color_dict=no_node_color_dict)
