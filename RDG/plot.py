@@ -202,7 +202,10 @@ def plot(
     :return: The figure and axes objects
     :rtype: tuple
     '''
-    translons = graph.get_translons()
+    translons = []
+    for translon in graph.get_translons():
+        if translon not in translons:
+            translons.append(translon)
     name = graph.locus
     locus_stop = graph.locus_stop
     graph = RDG(name=name, locus_stop=locus_stop)
@@ -210,7 +213,6 @@ def plot(
         graph.add_open_reading_frame(translon[0], translon[1])
 
     reinitiation_nodes = get_reinitiation_nodes(graph)
-    print(reinitiation_nodes)
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -397,7 +399,6 @@ if __name__ == "__main__":
             "frameshift": "#000000",
         },
     }
-
     # g = RDG(name="SRD5A1 - NM_001047")
     # g.add_open_reading_frame(138, 917)
     # g.add_open_reading_frame(86, 517)
@@ -413,9 +414,10 @@ if __name__ == "__main__":
     # plot(g, color_dict=no_node_color_dict)
 
     g = RDG(name="test")
-    g.add_open_reading_frame(184, 280)
-    g.add_open_reading_frame(264, 273)
-    g.add_open_reading_frame(276, 300)
-    g.add_open_reading_frame(279, 300)
-    g.add_open_reading_frame(322, 523)
+    g.add_open_reading_frame(10, 100)
+    g.add_open_reading_frame(110, 200)
+    g.add_open_reading_frame(210, 300)
+    g.add_open_reading_frame(310, 400)
+    g.add_open_reading_frame(410, 500)
     plot(g, color_dict=no_node_color_dict)
+[(44, 164), (285, 502), (285, 502), (622, 836), (622, 836), (622, 836), (622, 836), (1032, 1504), (1032, 1504), (1032, 1504), (1032, 1504), (1032, 1504), (1032, 1504), (1032, 1504), (1032, 1504), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976), (1578, 1976)]
