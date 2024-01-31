@@ -156,7 +156,7 @@ def get_reinitiation_nodes(graph) -> (RDG, list):
 
 default_color_dict = {
     "edge_colors": {
-        "frame0": (1, 0, 0), "frame1": (0, 1, 0), "frame2": (0, 0, 1)
+        0: (1, 0, 0), 1: (0, 1, 0), 2: (0, 0, 1)
         },
     "node_colors": {
         "startpoint": (0, 0, 1),
@@ -311,6 +311,7 @@ def plot(
                 # Translon needs to be positioned at the same height as the
                 # next node downstream and centered using the scaling
                 ds_node_y = pos[graph.nodes[edge[1]].output_nodes[0]][1]
+                frame = graph.nodes[edge[0]].frame
 
                 rect = patches.Rectangle(
                     (pos[edge[0]][0], ds_node_y - translon_scaling),
@@ -318,7 +319,7 @@ def plot(
                     translon_height,
                     linewidth=0.5,
                     edgecolor='#000000',
-                    facecolor=color_dict["edge_colors"]["frame1"],
+                    facecolor=color_dict["edge_colors"][frame],
                     )
                 ax1.add_patch(rect)
 
@@ -341,9 +342,9 @@ def plot(
     for frame, color in zip(
         sorted(translons_in_frame.keys()),
         [
-            color_dict["edge_colors"]["frame0"],
-            color_dict["edge_colors"]["frame1"],
-            color_dict["edge_colors"]["frame2"]
+            color_dict["edge_colors"][0],
+            color_dict["edge_colors"][1],
+            color_dict["edge_colors"][2]
             ]
     ):
         yticks_heights.append(height + 1)
@@ -367,9 +368,9 @@ def plot(
 if __name__ == "__main__":
     no_node_color_dict = {
         "edge_colors": {
-            "frame0": "#ffbb8d",
-            "frame1": "#ffeedd",
-            "frame2": "#ffd8be"
+            0: "#ffbb8d",
+            1: "#ffeedd",
+            2: "#ffd8be"
             },
         "node_colors": {
             "startpoint": "#000000",
