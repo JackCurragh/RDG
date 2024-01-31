@@ -206,6 +206,7 @@ def plot(
     for translon in graph.get_translons():
         if translon not in translons:
             translons.append(translon)
+    print(translons)
     name = graph.locus
     locus_stop = graph.locus_stop
     graph = RDG(name=name, locus_stop=locus_stop)
