@@ -3,14 +3,11 @@ Console script for RDG.
 
 Allows interactive command line interface to RDG plot generation 
 """
-import sys
-
 import click
-import os
-from rich.pretty import pprint
 
-from sequence_to_RDG import build_graphs_from_fasta
-from plot import plot
+from .sequence_to_RDG import build_graphs_from_fasta
+from .plot import plot
+
 
 @click.group()
 def rdg_cli():
@@ -38,7 +35,8 @@ def rdg_cli():
     '-m',
     default=10,
     help='''
-    Minimum length of the Translon to search for in the input sequence. Default: 10
+    Minimum length of the Translon to search for in the input sequence.
+    Default: 10
     '''
     )
 @click.option(
@@ -46,7 +44,8 @@ def rdg_cli():
     '-r',
     default=True,
     help='''
-    Whether to search for reinitiation events in the input sequence. Default: False
+    Whether to search for reinitiation events in the input sequence.
+    Default: False
     ''')
 @click.option(
     '--num_visualised',
