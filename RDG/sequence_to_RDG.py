@@ -111,7 +111,7 @@ def build_graphs_from_fasta(
     with Progress() as progress:
         task = progress.add_task(
             "[cyan]Building graphs...",
-            total=num_starts
+            total=min(num_starts, len(sequence_dict)),
         )
         for sequence_name, sequence in sequence_dict.items():
             translons = extract_translons(
