@@ -156,17 +156,19 @@ def get_reinitiation_nodes(graph) -> (RDG, list):
 
 
 default_color_dict = {
-    "edge_colors": {
-        0: (1, 0, 0), 1: (0, 1, 0), 2: (0, 0, 1)
+        "edge_colors": {
+            0: "#ffbb8d",
+            1: "#ffeedd",
+            2: "#ffd8be"
+            },
+        "node_colors": {
+            "startpoint": "#000000",
+            "endpoint": "#000000",
+            "translation_start": "#00b050",
+            "translation_stop": "#000000",
+            "frameshift": "#000000",
         },
-    "node_colors": {
-        "startpoint": (0, 0, 1),
-        "endpoint": (0.5, 0, 0.5),
-        "translation_start": (0, 1, 0),
-        "translation_stop": (1, 0, 0),
-        "frameshift": (1, 0.5, 0.3),
-    },
-}
+    }
 
 
 def plot(
