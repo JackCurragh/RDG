@@ -107,7 +107,7 @@ def build_graphs_from_fasta(
             else:
                 sequence_dict[current_name] += line.strip()
 
-    result_graphs = []    
+    result_graphs = []
     with Progress() as progress:
         task = progress.add_task(
             "[cyan]Building graphs...",
@@ -119,10 +119,10 @@ def build_graphs_from_fasta(
             )
             dg = RDG(name=sequence_name, locus_stop=len(sequence))
 
-            for translon_start, translon_stop in sorted(translons)[:num_starts]:
+            for start, stop in sorted(translons)[:num_starts]:
                 dg.add_open_reading_frame(
-                    translon_start,
-                    translon_stop,
+                    start,
+                    stop,
                     reinitiation=reinitiation,
                     upstream_limit=upstream_limit,
                 )

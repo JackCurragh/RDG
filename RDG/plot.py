@@ -293,7 +293,8 @@ def plot(
         reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
         base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
 
-        stop_node_height = pos[graph.nodes[node].output_nodes[0]][1] - translon_scaling
+        out_node_y = pos[graph.nodes[node].output_nodes[0]][1]
+        stop_node_height = out_node_y - translon_scaling
 
         height = abs(stop_node_height - reinitiation_edge_coord[1])
 
@@ -345,7 +346,7 @@ def plot(
                 ax1.add_patch(rect)
 
     if label_nodes:
-    # label nodes in pos
+        # label nodes in pos
         for node in pos:
             ax1.text(
                 pos[node][0],

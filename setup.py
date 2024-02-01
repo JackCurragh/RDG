@@ -30,7 +30,9 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
     ],
-    description="A python command-line utility for Ribosome Decision Graph (RDG) generation.",
+    description="""
+    A python command-line utility for Ribosome Decision Graph (RDG) generation.
+    """,
     entry_points={
         "console_scripts": [
             "RDG=RDG.cli:rdg_cli",
@@ -46,6 +48,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/jackcurragh/RDG",
-    version="0.1.5",
+    version="0.1.6",
     zip_safe=False,
 )
