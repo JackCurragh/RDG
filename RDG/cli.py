@@ -55,12 +55,13 @@ def rdg_cli():
     help='''
     Number of graphs to visualise. Default: 1
     ''')
-def fasta(infile,
-          start_codons,
-          num_starts,
-          min_length,
-          reinitiation,
-          num_visualised
+def visualise(
+        infile,
+        start_codons,
+        num_starts,
+        min_length,
+        reinitiation,
+        num_visualised
           ):
     graphs = build_graphs_from_fasta(
         infile,
