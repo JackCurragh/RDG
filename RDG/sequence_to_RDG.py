@@ -107,18 +107,18 @@ def build_graphs_from_fasta(
             else:
                 sequence_dict[current_name] += line.strip()
 
-    result_graphs = []
-    for sequence_name, sequence in sequence_dict.items():
-        translons = extract_translons(
-            sequence, starts=start_codons, min_length=min_length
+    result_graphs = []    
+    with Progress() as progress:
+        task = progress.add_task(
+            "[cyan]Building graphs...",
+            total=num_starts
         )
-        dg = RDG(name=sequence_name, locus_stop=len(sequence))
-
-        with Progress() as progress:
-            task = progress.add_task(
-                f"[cyan]Building graph for {sequence_name}...",
-                total=num_starts
+        for sequence_name, sequence in sequence_dict.items():
+            translons = extract_translons(
+                sequence, starts=start_codons, min_length=min_length
             )
+            dg = RDG(name=sequence_name, locus_stop=len(sequence))
+
             for translon_start, translon_stop in sorted(translons)[:num_starts]:
                 dg.add_open_reading_frame(
                     translon_start,
@@ -126,7 +126,7 @@ def build_graphs_from_fasta(
                     reinitiation=reinitiation,
                     upstream_limit=upstream_limit,
                 )
-                progress.update(task, advance=1)
-        result_graphs.append(dg)
+            progress.update(task, advance=1)
+            result_graphs.append(dg)
 
     return result_graphs
