@@ -117,7 +117,7 @@ def build_graphs_from_fasta(
         with Progress() as progress:
             task = progress.add_task(
                 f"[cyan]Building graph for {sequence_name}...",
-                total=len(translons)
+                total=len(num_starts)
             )
             for translon_start, translon_stop in sorted(translons)[:num_starts]:
                 dg.add_open_reading_frame(
