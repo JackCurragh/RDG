@@ -62,6 +62,7 @@ def build_graphs_from_fasta(
     start_codons: Set[str] = {"ATG", "CTG", "GTG"},
     reinitiation: bool = False,
     upstream_limit: int = 1,
+    num_starts: int = 3,
 ) -> List[RDG]:
     """
     Build graphs from a FASTA file.
@@ -78,9 +79,10 @@ def build_graphs_from_fasta(
                 Default: False.
     - upstream_limit (int): Limit for upstream distance in the graph.
                 Default: 1.
+    - num_starts (int): Number of start codons to search for in the input
 
     Returns:
-    List[RDG]: A list of RDG (your_module.RDG) objects representing the graphs.
+    List[RDG]: A list of RDG (RDG) objects representing the graphs.
 
     Example:
     ```python
@@ -117,7 +119,7 @@ def build_graphs_from_fasta(
                 f"[cyan]Building graph for {sequence_name}...",
                 total=len(translons)
             )
-            for translon_start, translon_stop in sorted(translons):
+            for translon_start, translon_stop in sorted(translons)[:num_starts]:
                 dg.add_open_reading_frame(
                     translon_start,
                     translon_stop,
