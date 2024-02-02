@@ -3,17 +3,16 @@ Implementation of the Ribosome Decision Graph Concept
 
 ## Using RDGs 
 
-### Dependencies 
-
-- matplotlib          3.5.0
-- networkx            2.6.3 
-- sqlitedict          1.7.0
-
 ### Installation 
 ~~~
 pip install RDG
 ~~~
 
+### Usage 
+Via the command line Ribosome Decision Graphs can be visualised with:
+```
+RDP visulaise <path_to_transcript_FASTA>
+```
 
 last version with ete3 plotting
 ## Background 
