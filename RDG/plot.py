@@ -148,7 +148,6 @@ def get_reinitiation_nodes(graph, base_limit=0) -> (RDG, list):
         for edge in non_coding_edges:
             if stop_node.node_start > non_coding_edges[edge][0] + base_limit\
               and stop_node.node_start < non_coding_edges[edge][1]:
-                print(stop_node.node_start, non_coding_edges[edge][0] + base_limit, stop_node.node_start > non_coding_edges[edge][0] + base_limit)
                 if edge != 1:  # ignore the non-coding path
                     reinitiation_nodes[node] = edge
                 break
