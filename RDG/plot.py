@@ -299,10 +299,15 @@ def plot(
         height = abs(stop_node_height - reinitiation_edge_coord[1])
 
         width = vertical_branch_width/2
+
+        # if the translon length is less than the width of the vertical line
+        # then the line is updated to be the translon length
+        start_node_coord = pos[graph.nodes[node].input_nodes[0]]
+        translon_length = stop_node_coord[0] - start_node_coord[0]
         width = width if abs(
-            (reinitiation_edge_coord[0] - stop_node_coord[0]) > width
+            translon_length > width
         ) else abs(
-            reinitiation_edge_coord[0] - stop_node_coord[0]
+            translon_length
         )
         rect = patches.Rectangle(
             (pos[node][0] - width, base_height),
