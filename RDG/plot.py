@@ -271,6 +271,15 @@ def plot(
     vertical_branch_width = graph.locus_stop * 0.01
     # Vertical lines at branch points
     for branch in graph.get_branch_points():
+        stop_node_coord = pos[branch]
+        start_node_coord = pos[graph.nodes[branch].input_nodes[0]]
+        translon_length = stop_node_coord[0] - start_node_coord[0]
+
+        vertical_branch_width = vertical_branch_width if abs(
+            translon_length > vertical_branch_width
+        ) else abs(
+            translon_length
+        )
         if branch in pos:
             A = get_end_or_branch(graph, graph.nodes[branch].output_nodes[0])
             B = get_end_or_branch(graph, graph.nodes[branch].output_nodes[1])
