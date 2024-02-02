@@ -11,7 +11,7 @@ pip install RDG
 ### Usage 
 Via the command line Ribosome Decision Graphs can be visualised with:
 ```
-RDP visulaise <path_to_transcript_FASTA>
+RDG visulaise <path_to_transcript_FASTA>
 ```
 
 last version with ete3 plotting
