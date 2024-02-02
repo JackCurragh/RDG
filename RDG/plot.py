@@ -228,7 +228,7 @@ def plot(
                 (translon[0], translon[1] - translon[0])
                 )
             translons_in_frame[translon[1] % 3].append(
-                (translon[1], translon[2] - translon[1])
+                (translon[1], translon[2] - translon[1])Systematic analysis of the PTEN 5’ leader identifies a major AUU initiated proteoform
                 )
 
     # position nodes on xy plane
@@ -298,7 +298,10 @@ def plot(
 
         height = abs(stop_node_height - reinitiation_edge_coord[1])
 
-        width = vertical_branch_width/2
+        width = min(
+            vertical_branch_width/2,
+            abs(reinitiation_edge_coord[0] - stop_node_coord[0])
+        )
         rect = patches.Rectangle(
             (pos[node][0] - width, base_height),
             width=width,
