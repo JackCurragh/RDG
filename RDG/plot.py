@@ -125,7 +125,7 @@ def get_branch_heights(graph, pos):
     return branch_heights
 
 
-def get_reinitiation_nodes(graph) -> (RDG, list):
+def get_reinitiation_nodes(graph, base_limit=0) -> (RDG, list):
     '''
     identify reinitiation nodes and return the edges that they should
     reinitiate translation at
@@ -146,8 +146,9 @@ def get_reinitiation_nodes(graph) -> (RDG, list):
     for node in graph.get_stop_nodes():
         stop_node = graph.nodes[node]
         for edge in non_coding_edges:
-            if stop_node.node_start > non_coding_edges[edge][0]\
+            if stop_node.node_start > non_coding_edges[edge][0] + base_limit\
               and stop_node.node_start < non_coding_edges[edge][1]:
+                print(stop_node.node_start, non_coding_edges[edge][0] + base_limit, stop_node.node_start > non_coding_edges[edge][0] + base_limit)
                 if edge != 1:  # ignore the non-coding path
                     reinitiation_nodes[node] = edge
                 break
@@ -179,6 +180,7 @@ def plot(
     translon_height=0.5,
     scantron_height=0.1,
     label_nodes=False,
+    reinit_base_limit=0
 ):
     '''
     Generate a plot of the RDG
@@ -201,6 +203,12 @@ def plot(
     :param scantron_height: The height of the non coding edges
     :type scantron_height: float
 
+    :param label_nodes: Whether to label the nodes
+    :type label_nodes: bool
+
+    :param reinit_base_limit: The base limit for reinitiation
+    :type reinit_base_limit: int
+
     :return: The figure and axes objects
     :rtype: tuple
     '''
@@ -214,7 +222,6 @@ def plot(
     for translon in translons:
         graph.add_open_reading_frame(translon[0], translon[1])
 
-    reinitiation_nodes = get_reinitiation_nodes(graph)
     # store translons in each frame for plotting the translon plot.
     translons_in_frame = {0: [], 1: [], 2: []}
     translons = graph.get_translons()
@@ -291,6 +298,10 @@ def plot(
                 )
             ax1.add_patch(rect)
 
+    reinitiation_nodes = get_reinitiation_nodes(
+        graph,
+        base_limit=reinit_base_limit
+        )
     # Vertical lines at reinitiation nodes
     for node in reinitiation_nodes:
         stop_node_coord = pos[node]
@@ -419,19 +430,19 @@ if __name__ == "__main__":
     # g.add_open_reading_frame(86, 517)
     # g.add_open_reading_frame(112, 438)
     # plot(g, color_dict=no_node_color_dict)
-    # g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
-    # g.add_open_reading_frame(200, 293)
-    # g.add_open_reading_frame(486, 1943)
-    # g.add_open_reading_frame(700, 891, reinitiation=False)
-    # g.add_open_reading_frame(888, 1943, reinitiation=False)
+    g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
+    g.add_open_reading_frame(486, 649)
+    g.add_open_reading_frame(700, 891, reinitiation=False)
+    g.add_open_reading_frame(888, 1943, reinitiation=False)
+
+    plot(g, color_dict=no_node_color_dict, reinit_base_limit=300)
+    plot(g, color_dict=no_node_color_dict, reinit_base_limit=0)
+
+    # g = RDG(name="test", locus_stop=2041)
+    # g.add_open_reading_frame(486, 649)
+    # g.add_open_reading_frame(700, 891)
+    # g.add_open_reading_frame(888, 1943)
+    # g.add_open_reading_frame(85, 94)
+    # g.add_open_reading_frame(23, 26)
 
     # plot(g, color_dict=no_node_color_dict)
-
-    g = RDG(name="test", locus_stop=2041)
-    g.add_open_reading_frame(486, 649)
-    g.add_open_reading_frame(700, 891)
-    g.add_open_reading_frame(888, 1943)
-    g.add_open_reading_frame(85, 94)
-    g.add_open_reading_frame(23, 26)
-
-    plot(g, color_dict=no_node_color_dict)
