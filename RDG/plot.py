@@ -228,7 +228,7 @@ def plot(
                 (translon[0], translon[1] - translon[0])
                 )
             translons_in_frame[translon[1] % 3].append(
-                (translon[1], translon[2] - translon[1])Systematic analysis of the PTEN 5’ leader identifies a major AUU initiated proteoform
+                (translon[1], translon[2] - translon[1])
                 )
 
     # position nodes on xy plane
