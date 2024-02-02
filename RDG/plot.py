@@ -298,9 +298,11 @@ def plot(
 
         height = abs(stop_node_height - reinitiation_edge_coord[1])
 
-        width = min(
-            vertical_branch_width/2,
-            abs(reinitiation_edge_coord[0] - stop_node_coord[0])
+        width = vertical_branch_width/2
+        width = width if abs(
+            (reinitiation_edge_coord[0] - stop_node_coord[0]) < width/2
+        ) else abs(
+            reinitiation_edge_coord[0] - stop_node_coord[0]
         )
         rect = patches.Rectangle(
             (pos[node][0] - width, base_height),
