@@ -300,7 +300,7 @@ def plot(
 
         width = vertical_branch_width/2
         width = width if abs(
-            (reinitiation_edge_coord[0] - stop_node_coord[0]) < width/2
+            (reinitiation_edge_coord[0] - stop_node_coord[0]) < width
         ) else abs(
             reinitiation_edge_coord[0] - stop_node_coord[0]
         )
