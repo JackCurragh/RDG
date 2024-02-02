@@ -271,15 +271,12 @@ def plot(
     vertical_branch_width = graph.locus_stop * 0.01
     # Vertical lines at branch points
     for branch in graph.get_branch_points():
-        stop_node_coord = pos[branch]
-        start_node_coord = pos[graph.nodes[branch].input_nodes[0]]
+        start_node_coord = pos[branch]
+        stop_node_coord = pos[graph.nodes[branch].output_nodes[0]]
         translon_length = stop_node_coord[0] - start_node_coord[0]
 
-        vertical_branch_width = vertical_branch_width if abs(
-            translon_length > vertical_branch_width
-        ) else abs(
-            translon_length
-        )
+        vertical_branch_width = vertical_branch_width\
+            if translon_length > vertical_branch_width else translon_length
         if branch in pos:
             A = get_end_or_branch(graph, graph.nodes[branch].output_nodes[0])
             B = get_end_or_branch(graph, graph.nodes[branch].output_nodes[1])
@@ -313,11 +310,7 @@ def plot(
         # then the line is updated to be the translon length
         start_node_coord = pos[graph.nodes[node].input_nodes[0]]
         translon_length = stop_node_coord[0] - start_node_coord[0]
-        width = width if abs(
-            translon_length > width
-        ) else abs(
-            translon_length
-        )
+        width = width if translon_length > width else translon_length
         rect = patches.Rectangle(
             (pos[node][0] - width, base_height),
             width=width,
@@ -426,7 +419,6 @@ if __name__ == "__main__":
     # g.add_open_reading_frame(86, 517)
     # g.add_open_reading_frame(112, 438)
     # plot(g, color_dict=no_node_color_dict)
-
     # g = RDG(name="ATF4 - NM_001675", locus_stop=2041)
     # g.add_open_reading_frame(200, 293)
     # g.add_open_reading_frame(486, 1943)
@@ -435,11 +427,11 @@ if __name__ == "__main__":
 
     # plot(g, color_dict=no_node_color_dict)
 
-    g = RDG(name="test")
-    g.add_open_reading_frame(10, 100)
-    g.add_open_reading_frame(110, 200)
-    g.add_open_reading_frame(210, 300)
-    g.add_open_reading_frame(310, 400)
-    g.add_open_reading_frame(410, 500)
+    g = RDG(name="test", locus_stop=2041)
+    g.add_open_reading_frame(486, 649)
+    g.add_open_reading_frame(700, 891)
+    g.add_open_reading_frame(888, 1943)
+    g.add_open_reading_frame(85, 94)
+    g.add_open_reading_frame(23, 26)
 
     plot(g, color_dict=no_node_color_dict)
