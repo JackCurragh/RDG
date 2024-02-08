@@ -135,27 +135,20 @@ class RDG:
             locus_start: int = 0,
             locus_stop: int = 1000,
             name: str = "name",
-            nodes=None,
-            edges=None
+            nodes: dict = None,
+            edges: dict = None,
             ):
         """
         Initialize a fresh RDG object or update an existing one.
 
         Parameters:
-        -----------
-        locus_start: int
-            Start of the locus in base pairs.
-        locus_stop: int
-            Length of the locus in base pairs.
-        name: str
-            Name of the locus.
-        nodes: dict, optional
-            Dictionary of nodes. Keys are node keys, values are Node objects.
-        edges: dict, optional
-            Dictionary of edges. Keys are edge keys, values are Edge objects.
+        locus_start (int): Start of the locus in base pairs.
+        locus_stop (int): Length of the locus in base pairs.
+        name (str): Name of the locus.
+        nodes (dict, optional): Dictionary of nodes. Keys are node keys, values are Node objects.
+        edges (dict, optional): Dictionary of edges. Keys are edge keys, values are Edge objects.
 
         Returns:
-        --------
         RDG object
         """
         if nodes is None:
@@ -204,11 +197,9 @@ class RDG:
         Load a basic graph with one translon.
 
         Returns:
-        --------
-        RDG object
-        with:
-            locus length = 1000
-            translon coordinates = 10, 100
+        RDG object: RDG object with the following attributes:
+            - locus length = 1000
+            - translon coordinates = (10, 100)
         """
         self.nodes = {
             1: Node(
@@ -290,7 +281,6 @@ class RDG:
         Get the keys of all nodes in the graph.
 
         Returns:
-        --------
         List[int]: A list containing the keys of all nodes.
         """
         return list(self.nodes.keys())
@@ -300,7 +290,6 @@ class RDG:
         Get the keys of all edges in the graph.
 
         Returns:
-        --------
         List[int]: A list containing the keys of all edges.
         """
         return list(self.edges.keys())
@@ -310,7 +299,6 @@ class RDG:
         Return a dict of edges with keys of the form (from_node_id, to_node_id)
 
         Returns:
-        --------
         dict Keys: tuples: (from_node_id, to_node_id) Values: edge ids
         """
         return {
@@ -323,7 +311,6 @@ class RDG:
         Return the lowest available node key
 
         Returns:
-        --------
         int: new node key that is not already used
         """
         keys = self.nodes.keys()
@@ -337,7 +324,6 @@ class RDG:
         Return the lowest available edge key
 
         Returns:
-        --------
         int: new edge key that is not already used
         """
         keys = self.edges.keys()
@@ -346,20 +332,17 @@ class RDG:
         else:
             return 1
 
-    def get_key_from_position(self, position, node_type) -> list:
+    def get_key_from_position(self, position: int, node_type: str) -> list:
         """
         Return the node key for the node of specified type at the
-        stated position
+        stated position.
 
         Parameters:
-        -----------
-        position: int position in the locus
-        node_type: str type of node to look for
+        position (int): Position in the locus.
+        node_type (str): Type of node to look for.
 
         Returns:
-        --------
-        int: node key
-
+        int: Node key.
         """
 
         valid_nodes = {
@@ -383,17 +366,15 @@ class RDG:
                     f"No node of type '{node_type}' at position {position}"
                 )
 
-    def remove_edge(self, edge_key):
+    def remove_edge(self, edge_key: int):
         """
-        Remove the edge with the given key from the graph also removing
-        references from adjacent nodes
+        Remove the edge with the given key from the graph, also removing
+        references from adjacent nodes.
 
-        Does not remove nodes that are no longer connected to any other nodes
+        Does not remove nodes that are no longer connected to any other nodes.
 
         Parameters:
-        -----------
-        edge_key: int key of the edge to remove
-
+        edge_key (int): Key of the edge to remove.
         """
         from_node = self.edges[edge_key].from_node
         to_node = self.edges[edge_key].to_node
@@ -412,16 +393,14 @@ class RDG:
         if edge_key in self.edges:
             self.edges.pop(edge_key)
 
-    def add_edge(self, edge, from_node_key, to_node_key):
+    def add_edge(self, edge: Edge, from_node_key: int, to_node_key: int):
         """
-        Introduce edges and references with the a edge
+        Introduce an edge and its references to the graph.
 
         Parameters:
-        -----------
-        edge: Edge object to add
-        from_node_key: int key of the node the edge is coming from
-        to_node_key: int key of the node the edge is going to
-
+        edge (Edge): Edge object to add.
+        from_node_key (int): Key of the node the edge is coming from.
+        to_node_key (int): Key of the node the edge is going to.
         """
 
         self.nodes[from_node_key].output_edges.append(edge.key)
@@ -432,14 +411,13 @@ class RDG:
 
         self.edges[edge.key] = edge
 
-    def add_node(self, node):
+    def add_node(self, node: Node):
         """
         Introduce nodes and references with the a node.
 
         The associated edges must be added separately
 
         Parameters:
-        -----------
         node: Node object to add
 
         """
@@ -453,9 +431,7 @@ class RDG:
         Does not remove edges that are no longer connected to any other nodes
 
         Parameters:
-        -----------
         node_key: int key of the node to remove
-
         """
         if node_key in self.nodes:
             for edge in sorted(self.nodes[node_key].output_edges):
@@ -466,26 +442,23 @@ class RDG:
 
     def update_edge(
             self,
-            edge_key,
-            new_from_node,
-            new_to_node,
-            new_coordinates
+            edge_key: int,
+            new_from_node: int,
+            new_to_node: int,
+            new_coordinates: Tuple[int, int]
             ):
         """
         Update the edge with the given key with the new from and to
         nodes and coordinates
-
-        Parameters:
-        -----------
-        edge_key: int key of the edge to update
-        new_from_node: int key of the new from node
-        new_to_node: int key of the new to node
-        new_coordinates: tuple of the form (start, end) of the new coordinates
-
         notes:
         when inserting an translon into an untranslated edge we update the
         untranslated edge to now start at the new start codon instead
 
+        Parameters:
+        edge_key: int key of the edge to update
+        new_from_node: int key of the new from node
+        new_to_node: int key of the new to node
+        new_coordinates: tuple of the form (start, end) of the new coordinates
         """
         old_from_node = self.edges[edge_key].from_node
         old_to_node = self.edges[edge_key].to_node
@@ -527,19 +500,14 @@ class RDG:
         Handle inserting node into just one edge including down path.
         Nodes are already inserted in the graph but are not connected. This
         function connects them and updates the edges and nodes as necessary
-
-        Parameters:
-        -----------
-        edge: Edge object to insert into
-        start_node: Node object of the start codon for the translon
-        stop_node: Node object of the stop codon for the translon
-
-        Notes:
-        ------
         Results in the creation of three new edges and two new nodes for the
         coding branch. The non-coding branch is updated to now start at the
         start codon
 
+        Parameters:
+        edge: Edge object to insert into
+        start_node: Node object of the start codon for the translon
+        stop_node: Node object of the stop codon for the translon
         """
         five_prime_edge_coords = (
             edge.coordinates[0], start_node.node_start - 1
@@ -609,11 +577,9 @@ class RDG:
         Return boolean as to whether an edge entering this node is translated
 
         Parameters:
-        -----------
         node: int key of the node to check
 
         Returns:
-        --------
         boolean: True if an edge entering this node is translated,
                 False otherwise
         """
@@ -624,16 +590,14 @@ class RDG:
                 boolean = True
         return boolean
 
-    def root_to_node_of_acyclic_node_path(self, node) -> list:
+    def root_to_node_of_acyclic_node_path(self, node: int) -> list:
         """
         Return path from root to given node as a list of node keys
 
         Parameters:
-        -----------
         node: int key of the node to check
 
         Returns:
-        --------
         path: list of node keys from root to given node
         """
         path = [node]
@@ -648,16 +612,14 @@ class RDG:
                 node = in_node
         return path[::-1]
 
-    def root_to_node_of_acyclic_edge_path(self, node):
+    def root_to_node_of_acyclic_edge_path(self, node: int):
         """
         Return path from root to given node as a list of edge keys
 
         Parameters:
-        -----------
         node: int key of the node to check
 
         Returns:
-        --------
         path: list of edge keys from root to given node
 
         """
@@ -727,7 +689,6 @@ class RDG:
             and one from the start node to the old terminal node
 
         Parameters:
-        -----------
         start_codon_position: int position of the start codon
         stop_codon_position: int position of the stop codon
         reinitiation: bool whether or not this is allowed to be a
@@ -800,7 +761,6 @@ class RDG:
         old stop node go to new stop node and a old terminal node.
 
         Parameters:
-        -----------
         readthrough_codon_position: int position of the stop codon
         next_stop_codon_position: int position of the next stop codon
 
@@ -877,7 +837,12 @@ class RDG:
             )
             self.add_edge(three_prime, new_stop_node.key, terminal_node_key)
 
-    def add_frameshift(self, fs_position, next_stop_codon_position, shift):
+    def add_frameshift(
+            self,
+            fs_position: int,
+            next_stop_codon_position: int,
+            shift: int
+            ) -> None:
         """
         Handles adding a frameshifting event to the graph.
 
@@ -889,7 +854,6 @@ class RDG:
         edge is untranslated.
 
         Parameters:
-        -----------
         fs_position: int position of the frameshift
         next_stop_codon_position: int position of the next stop codon after
         the frameshift
@@ -1031,8 +995,7 @@ class RDG:
         Return a list of nodes that are branch points
         (i.e have more than 1 output edge)
 
-        Returns
-        -------
+        Returns:
         list
         """
         branch_points = []
@@ -1046,8 +1009,7 @@ class RDG:
         Return list of terminal node keys. These nodes have no output edges as
         they are the end of the path through the graph
 
-        Returns
-        -------
+        Returns:
         list
         """
         endpoints = []
@@ -1065,8 +1027,7 @@ class RDG:
         they are the start of the path through the graph (i.e the 5' end of
         the locus or TSS)
 
-        Returns
-        -------
+        Returns:
         list
         """
         startpoints = []
@@ -1083,8 +1044,7 @@ class RDG:
         Return translation start keys. These nodes have 2 output edges. One
         for where translation starts at that site and one for where it doesn't
 
-        Returns
-        -------
+        Returns:
         list
         """
         translation_starts = []
@@ -1101,8 +1061,7 @@ class RDG:
         Return translation stop keys. These may have 1 or 2 output edges.
         If they have 2 output edges then they are readthrough cases
 
-        Returns
-        -------
+        Returns:
         list
         """
         translation_stops = []
@@ -1119,8 +1078,7 @@ class RDG:
 
         NOTE: multiple readthroughs are not yet supported
 
-        Returns
-        -------
+        Returns:
         list
         """
         translation_starts = self.get_start_nodes()
@@ -1173,8 +1131,7 @@ class RDG:
         """
         Return a list of keys for all frameshift nodes.
 
-        Returns
-        -------
+        Returns:
         list
         """
         frameshifts = []
@@ -1188,8 +1145,7 @@ class RDG:
         Return a list of lists of nodes that describe the unique
         paths through the graph
 
-        Returns
-        -------
+        Returns:
         list
         """
         terminal_nodes = self.get_endpoints()
@@ -1204,8 +1160,7 @@ class RDG:
         """
         Return a dictionary of statistics about the graph
 
-        Returns
-        -------
+        Returns:
         dict
         """
         stats = {}
@@ -1254,6 +1209,9 @@ class RDG:
     def describe(self) -> str:
         """
         Return a string describing the graph
+
+        Returns:
+        text based description of the graph
         """
         output = ""
         stats = self.statistics()
@@ -1268,12 +1226,10 @@ class RDG:
         Return a list of branchpoints upstream of a node
 
         Parameters
-        ----------
         node: str
             key of the node
 
-        Returns
-        -------
+        Returns:
         list
         """
         if node in self.get_startpoints():
@@ -1292,14 +1248,12 @@ class RDG:
         Return a Newick representation of the graph.
 
         Parameters:
-        -----------
         node: Optional[str], default None
             Current node to process
         root: Optional[str], default None
             Root node of the tree
 
         Returns:
-        --------
         str: Newick representation of the graph
         """
         # When the function is called initially without a node,
