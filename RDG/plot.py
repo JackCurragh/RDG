@@ -405,6 +405,7 @@ def plot(
     ax2.set_xlim(left=ax1.get_xlim()[0], right=ax1.get_xlim()[1])
     ax2.set_ylim(bottom=10, top=19)
     ax2.set_yticks(yticks_heights, labels=yticks_labels)
+    ax2.set_xlabel('Coordinates (nt)')
     plt.show()
     return fig, ax1, ax2
 
