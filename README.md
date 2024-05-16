@@ -1,6 +1,6 @@
 # RDG
 Implementation of the Ribosome Decision Graph Concept
-
+## [Try RDG Viewer](https://colab.research.google.com/drive/1f5iSgy5DAXeq27Lx1fCyngm4IjinkgC5?usp=sharing)
 ## Using RDGs 
 
 ### Installation 
