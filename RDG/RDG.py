@@ -1300,3 +1300,25 @@ class RDG:
             newick += ";"
 
         return newick
+
+    def prune(self, branch_position):
+        """
+        Prune the graph at the given position, removing all nodes and edges
+        downstream of the position.
+
+        Parameters:
+        branch_position: int
+            Position at which to prune the graph
+        """
+        affected_nodes = [
+            node
+            for node in self.nodes
+            if self.nodes[node].node_start == branch_position
+        ]
+
+        for node in affected_nodes:
+            for downstream_node in self.nodes[node].output_nodes:
+                self.prune(self.nodes[downstream_node].node_start)
+
+        for node in affected_nodes:
+            self.remove_node(node)
