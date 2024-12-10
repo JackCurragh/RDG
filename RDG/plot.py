@@ -179,34 +179,30 @@ def plot(
     translon_height=0.5,
     scantron_height=0.1,
     label_nodes=False,
-    reinit_base_limit=0
+    reinit_base_limit=0,
+    allow_reinitiation=False  # New parameter to control reinitiation
 ):
     '''
     Generate a plot of the RDG
 
     :param graph: The RDG object representing the decision graph
     :type graph: RDGot
-
     :param color_dict: A dictionary of colors to use for the plot
     :type color_dict: dict
-
     :param height_ratios: The height ratios of the two subplots
     :type height_ratios: list
-
     :param show_non_coding: Whether to show the non coding edges
     :type show_non_coding: bool
-
     :param translon_height: The height of the translon plot
     :type translon_height: float
-
     :param scantron_height: The height of the non coding edges
     :type scantron_height: float
-
     :param label_nodes: Whether to label the nodes
     :type label_nodes: bool
-
     :param reinit_base_limit: The base limit for reinitiation
     :type reinit_base_limit: int
+    :param allow_reinitiation: Whether to show reinitiation events
+    :type allow_reinitiation: bool
 
     :return: The figure and axes objects
     :rtype: tuple
@@ -269,12 +265,11 @@ def plot(
     ax2.set_ylim(0, max_y)
 
     # handle scaling of translon Y axis offset.
-    # If translons are plotted without offset they do not align
-    # with the non coding edges
     translon_scaling = (translon_height / 2) - (scantron_height / 2)
 
     branch_heights = get_branch_heights(graph, pos)
     vertical_branch_width = graph.locus_stop * 0.01
+    
     # Vertical lines at branch points
     for branch in graph.get_branch_points():
         start_node_coord = pos[branch]
@@ -297,51 +292,47 @@ def plot(
                 )
             ax1.add_patch(rect)
 
-    reinitiation_nodes = get_reinitiation_nodes(
-        graph,
-        base_limit=reinit_base_limit
-        )
-    # Vertical lines at reinitiation nodes
-    for node in reinitiation_nodes:
-        stop_node_coord = pos[node]
-        from_node = graph.edges[reinitiation_nodes[node]].to_node
-
-        reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
-        base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
-
-        out_node_y = pos[graph.nodes[node].output_nodes[0]][1]
-        stop_node_height = out_node_y - translon_scaling
-
-        height = abs(stop_node_height - reinitiation_edge_coord[1])
-
-        width = vertical_branch_width/2
-
-        # if the translon length is less than the width of the vertical line
-        # then the line is updated to be the translon length
-        start_node_coord = pos[graph.nodes[node].input_nodes[0]]
-        translon_length = stop_node_coord[0] - start_node_coord[0]
-        width = width if translon_length > width else translon_length
-        rect = patches.Rectangle(
-            (pos[node][0] - width, base_height),
-            width=width,
-            height=height,
-            linewidth=0.5,
-            edgecolor='#6d6d6d',
-            facecolor='#6d6d6d',
+    # Only process reinitiation nodes if allow_reinitiation is True
+    if allow_reinitiation:
+        reinitiation_nodes = get_reinitiation_nodes(
+            graph,
+            base_limit=reinit_base_limit
             )
-        ax1.add_patch(rect)
+        # Vertical lines at reinitiation nodes
+        for node in reinitiation_nodes:
+            stop_node_coord = pos[node]
+            from_node = graph.edges[reinitiation_nodes[node]].to_node
+
+            reinitiation_edge_coord = (stop_node_coord[0], pos[from_node][1])
+            base_height = min(stop_node_coord[1], reinitiation_edge_coord[1])
+
+            out_node_y = pos[graph.nodes[node].output_nodes[0]][1]
+            stop_node_height = out_node_y - translon_scaling
+
+            height = abs(stop_node_height - reinitiation_edge_coord[1])
+
+            width = vertical_branch_width/2
+
+            start_node_coord = pos[graph.nodes[node].input_nodes[0]]
+            translon_length = stop_node_coord[0] - start_node_coord[0]
+            width = width if translon_length > width else translon_length
+            rect = patches.Rectangle(
+                (pos[node][0] - width, base_height),
+                width=width,
+                height=height,
+                linewidth=0.5,
+                edgecolor='#6d6d6d',
+                facecolor='#6d6d6d',
+                )
+            ax1.add_patch(rect)
 
     edges = graph.get_edges_from_to()
-    # loop over edges and make translated edges 10x thicker than
-    # non-translated edges
-
+    # Draw edges
     for edge in edges:
         if edge[0] in pos and edge[1] in pos:
             if graph.edges[edges[edge]].edge_type == "translated":
                 length = pos[edge[1]][0] - pos[edge[0]][0]
 
-                # Translon needs to be positioned at the same height as the
-                # next node downstream and centered using the scaling
                 ds_node_y = pos[graph.nodes[edge[1]].output_nodes[0]][1]
                 frame = graph.nodes[edge[0]].frame
 
@@ -379,7 +370,8 @@ def plot(
                 fontsize=18,
                 color=color_dict["node_colors"]["startpoint"],
             )
-    # plot the translon plot
+
+    # Plot translon frames
     height = 10
     yticks_heights = []
     yticks_labels = []
@@ -406,7 +398,7 @@ def plot(
     ax2.set_ylim(bottom=10, top=19)
     ax2.set_yticks(yticks_heights, labels=yticks_labels)
     ax2.set_xlabel('Coordinates (nt)')
-    plt.show()
+    
     return fig, ax1, ax2
 
 
