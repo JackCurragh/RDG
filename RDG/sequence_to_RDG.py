@@ -172,6 +172,8 @@ def find_orfs(sequence, startautomaton, stopautomaton, minlength=0, maxlength=10
     startpositions, start_codons = find_all_positions(sequence, startautomaton)
     stoppositions, stop_codons = find_all_positions(sequence, stopautomaton)
 
+    print(startpositions)
+
     for frame, startpositions in startpositions.items():
         for position in startpositions:
             # Find valid stop codons downstream of start position
