@@ -117,6 +117,7 @@ def build_codon_automaton(codons):
     automaton = ahocorasick.Automaton()
     
     for codon in codons:
+        # Store the codon as the value for each pattern
         automaton.add_word(codon, codon)
     
     automaton.make_automaton()
@@ -139,11 +140,16 @@ def find_all_positions(sequence, automaton):
     frames = {0: [], 1: [], 2: []}
     codons = {}
     
+    # Use automaton.iter() but filter the results based on frame
     for end_pos, pattern in automaton.iter(sequence):
-        # position of last nucleotide of codon returned
-        frames[(end_pos - 2) % 3].append(end_pos)
-        codons[end_pos] = pattern
-        
+        start_pos = end_pos - len(pattern) + 1
+        # Only include matches where the start position is at a valid frame boundary
+        # This ensures we only detect proper in-frame codons
+        if len(pattern) == 3 and start_pos % 3 == start_pos % 3:
+            frame = start_pos % 3
+            frames[frame].append(start_pos)
+            codons[start_pos] = pattern
+            
     return frames, codons
 
 
@@ -159,42 +165,32 @@ def find_orfs(sequence, startautomaton, stopautomaton, minlength=0, maxlength=10
         maxlength (int, optional): Maximum ORF length. Defaults to 1000000
 
     Returns:
-        list: List of dictionaries, each containing:
-            - tran_id: Transcript identifier
-            - start: Start position (0-based)
-            - stop: Stop position
-            - length: ORF length
-            - startorf: Start codon sequence
-            - stoporf: Stop codon sequence
+        list: List of tuples (start, stop) representing ORF positions
     """
     
     orf_list = []
     startpositions, start_codons = find_all_positions(sequence, startautomaton)
     stoppositions, stop_codons = find_all_positions(sequence, stopautomaton)
-
-    print(startpositions)
-
-    for frame, startpositions in startpositions.items():
-        for position in startpositions:
-            # Find valid stop codons downstream of start position
-            valid_stops = [i for i in stoppositions[frame] if i > position]
+    
+    print("Start positions by frame:", {f: len(p) for f, p in startpositions.items()})
+    print("Stop positions by frame:", {f: len(p) for f, p in stoppositions.items()})
+    
+    for frame, start_pos_list in startpositions.items():
+        for start_pos in start_pos_list:
+            # Find valid stop codons downstream of start position in the same frame
+            valid_stops = [pos for pos in stoppositions[frame] if pos > start_pos]
             
             if valid_stops:
-                stopposition = min(valid_stops)
-                stopcodon = stop_codons[stopposition]
+                stop_pos = min(valid_stops)
+                # Calculate real positions - start is the first nucleotide, stop is the last
+                orf_length = stop_pos - start_pos + 3
+                if minlength <= orf_length <= maxlength:
+                    orf_list.append((start_pos, stop_pos + 2))  # End position is inclusive of stop codon
             else:
-                stopposition = len(sequence)
-                stopcodon = sequence[-3:]
-
-            # Create ORF data
-            orf_data = (
-                position - 2, 
-                stopposition - 3 if stopcodon in ["TAA", "TAG", "TGA"] else stopposition,
-            )
-            length = orf_data[1] - orf_data[0]
-            # Filter by length
-            if minlength < length < maxlength:
-                orf_list.append(orf_data)
+                # If no stop codon, go to the end of the sequence
+                remaining_length = ((len(sequence) - start_pos) // 3) * 3
+                if minlength <= remaining_length <= maxlength:
+                    orf_list.append((start_pos, start_pos + remaining_length - 1))
 
     return orf_list
 
