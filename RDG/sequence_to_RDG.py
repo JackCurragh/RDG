@@ -212,7 +212,7 @@ def extract_translons(
 
     stops = {"TAA", "TAG", "TGA"}
 
-    translons = find_orfs(sequence, starts, stops, minlength=min_length)
+    translons = find_orfs(sequence, starts, stops, min_length=min_length)
 
     return sorted([t for t in translons if t[1] - t[0] >= min_length])
 
