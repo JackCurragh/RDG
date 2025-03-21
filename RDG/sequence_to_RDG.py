@@ -139,6 +139,8 @@ def extract_translons(
 
     stops = {"TAA", "TAG", "TGA"}
     translons = []
+
+    print(starts)
     
     # Build automaton for start codons
     start_automaton = ahocorasick.Automaton()
