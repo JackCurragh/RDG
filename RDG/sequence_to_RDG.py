@@ -196,7 +196,7 @@ def extract_translons(
             if valid:
                 translons.append((start_pos, start_pos + len(subsequence)))
 
-    return sorted(translons)
+    return sorted([t for t in translons if t[1] - t[0] >= min_length])
 
 
 def build_graphs_from_fasta(
