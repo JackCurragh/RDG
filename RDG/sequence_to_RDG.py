@@ -141,13 +141,13 @@ def find_orfs(sequence, start_codons=None, min_length=30):
     
     while i <= seq_len - 3:
         codon = sequence[i:i+3]
-        
+        print(codon, start_codons)
         # Check if current position is a start codon
         if codon in start_codons:
             # Start position of potential ORF
             orf_start = i
             print("found start codon")
-            
+
             
             # Look for the first in-frame stop codon
             j = i
