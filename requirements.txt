@@ -21,3 +21,4 @@ setuptools==68.2.2
 six==1.16.0
 sqlitedict==2.1.0
 wheel==0.41.2
+pyahocorasick==2.1.0

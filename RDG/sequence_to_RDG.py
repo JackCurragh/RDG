@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import List, Tuple, Set
+import ahocorasick
 from collections import defaultdict
 from RDG import RDG
 from rich.progress import Progress
@@ -103,13 +104,16 @@ def parse_gff(gff_path: str, num_transcripts: int) -> pd.DataFrame:
     return bed_df
 
 
+from typing import List, Tuple, Set
+import ahocorasick
+
 def extract_translons(
     sequence: str,
     starts: Set[str] = {"ATG", "CTG", "GTG"},
     min_length: int = 10,
 ) -> List[Tuple[int, int]]:
     """
-    Extract open reading frames (translons) from a nucleotide sequence.
+    Extract open reading frames (translons) from a nucleotide sequence using Aho-Corasick algorithm.
 
     Parameters:
     - sequence (str): The input nucleotide sequence.
@@ -120,7 +124,7 @@ def extract_translons(
 
     Returns:
     List[Tuple[int, int]]: A list of tuples representing the start and
-                        stop positions of detected translons.
+                      stop positions of detected translons.
 
     Example:
     ```python
@@ -128,30 +132,71 @@ def extract_translons(
     translons = extract_translons(sequence)
     print(translons)
     # Output: [(0, 15)]
+    ```
     """
     if not sequence:
         return []
 
     stops = {"TAA", "TAG", "TGA"}
     translons = []
+    
+    # Build automaton for start codons
+    start_automaton = ahocorasick.Automaton()
+    for start_codon in starts:
+        start_automaton.add_word(start_codon, start_codon)
+    start_automaton.make_automaton()
 
-    for i, _ in enumerate(sequence):
-        if sequence[i: i + 3] in starts:
-            codon_list = [
-                sequence[k: k + 3] for k in range(i, len(sequence), 3)
-                ]
-            for j, stop_codon in enumerate(codon_list):
-                if stop_codon in stops:
-                    translon = "".join(codon_list[: j + 1])
-                    if len(translon) > min_length:
-                        start_codon_position = i
-                        stop_codon_position = i + len(translon)
-                        translons.append(
-                            (start_codon_position, stop_codon_position)
-                            )
+    # Build automaton for stop codons
+    stop_automaton = ahocorasick.Automaton()
+    for stop_codon in stops:
+        stop_automaton.add_word(stop_codon, stop_codon)
+    stop_automaton.make_automaton()
+
+    # Find all start codon positions
+    start_positions = []
+    for end_pos, pattern in start_automaton.iter(sequence):
+        # position of last nucleotide of codon, adjust to get first nucleotide position
+        start_positions.append(end_pos - 2)
+    
+    # Process each start position
+    for start_pos in start_positions:
+        # Extract subsequence from start position to end
+        subsequence = sequence[start_pos:]
+        
+        # Skip if too short
+        if len(subsequence) < min_length:
+            continue
+        
+        # Find stop codons in the correct frame
+        stop_found = False
+        for stop_end_pos, pattern in stop_automaton.iter(subsequence):
+            # Get the absolute position in original sequence
+            abs_stop_pos = start_pos + stop_end_pos - 2
+            
+            # Check if stop codon is in the correct frame (divisible by 3 from start)
+            if (abs_stop_pos - start_pos) % 3 == 0:
+                # Extract the translon (including stop codon)
+                translon_length = abs_stop_pos - start_pos + 3
+                
+                if translon_length >= min_length:
+                    # Return positions as in the original function: (start_pos, end_pos)
+                    translons.append((start_pos, abs_stop_pos + 3))
+                    stop_found = True
                     break
+        
+        # If no stop codon is found, the translon extends to the end of the sequence
+        if not stop_found and len(subsequence) >= min_length:
+            # Check if the partial subsequence is a valid translon (no premature stops)
+            valid = True
+            for i in range(0, len(subsequence) - 2, 3):
+                if subsequence[i:i+3] in stops:
+                    valid = False
+                    break
+            
+            if valid:
+                translons.append((start_pos, start_pos + len(subsequence)))
 
-    return translons
+    return sorted(translons)
 
 
 def build_graphs_from_fasta(
