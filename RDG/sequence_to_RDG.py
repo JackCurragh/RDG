@@ -146,6 +146,8 @@ def find_orfs(sequence, start_codons=None, min_length=30):
         if codon in start_codons:
             # Start position of potential ORF
             orf_start = i
+            print("found start codon")
+            
             
             # Look for the first in-frame stop codon
             j = i
@@ -216,7 +218,7 @@ def extract_translons(
 
     return sorted([t for t in translons if t[1] - t[0] >= min_length])
 
-
+ 
 def build_graphs_from_fasta(
     file_path: str,
     min_length: int = 100,
