@@ -189,9 +189,9 @@ def find_orfs(sequence, startautomaton, stopautomaton, minlength=0, maxlength=10
                 position - 2, 
                 stopposition - 3 if stopcodon in ["TAA", "TAG", "TGA"] else stopposition,
             )
-
+            length = orf_data[1] - orf_data[0]
             # Filter by length
-            if minlength < orf_data["length"] < maxlength:
+            if minlength < length < maxlength:
                 orf_list.append(orf_data)
 
     return orf_list
