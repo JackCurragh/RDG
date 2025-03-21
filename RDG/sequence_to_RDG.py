@@ -140,12 +140,14 @@ def find_all_positions(sequence, automaton):
     frames = {0: [], 1: [], 2: []}
     codons = {}
     
-    # Use automaton.iter() but filter the results based on frame
+    # Use automaton.iter() to find all matches
     for end_pos, pattern in automaton.iter(sequence):
+        # Calculate the start position (Aho-Corasick gives end position)
         start_pos = end_pos - len(pattern) + 1
-        # Only include matches where the start position is at a valid frame boundary
-        # This ensures we only detect proper in-frame codons
-        if len(pattern) == 3 and start_pos % 3 == start_pos % 3:
+        
+        # Only accept 3-nucleotide patterns (proper codons)
+        if len(pattern) == 3:
+            # Determine which frame this codon belongs to
             frame = start_pos % 3
             frames[frame].append(start_pos)
             codons[start_pos] = pattern
