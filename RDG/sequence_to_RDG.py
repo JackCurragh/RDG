@@ -228,8 +228,8 @@ def extract_translons(
         return []
 
     stops = {"TAA", "TAG", "TGA"}
-    startautomaton = build_codon_automaton(starts)
-    stopautomaton = build_codon_automaton(stops)
+    startautomaton = build_codon_automaton(list(starts))
+    stopautomaton = build_codon_automaton(list(stops))
 
     translons = find_orfs(sequence, startautomaton, stopautomaton, minlength=min_length)
 
