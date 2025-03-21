@@ -157,6 +157,8 @@ def extract_translons(
     for end_pos, pattern in start_automaton.iter(sequence):
         # position of last nucleotide of codon, adjust to get first nucleotide position
         start_positions.append(end_pos - 2)
+
+    print(start_positions)
     
     # Process each start position
     for start_pos in start_positions:
