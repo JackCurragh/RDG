@@ -104,97 +104,80 @@ def parse_gff(gff_path: str, num_transcripts: int) -> pd.DataFrame:
     return bed_df
 
 
-def build_codon_automaton(codons):
+def find_orfs(sequence, start_codons=None, min_length=30):
     """
-    Build an Aho-Corasick automaton for codon pattern matching.
-
-    Args:
-        codons (list): List of codon sequences to match
-
-    Returns:
-        ahocorasick.Automaton: Compiled automaton for pattern matching
-    """
-    automaton = ahocorasick.Automaton()
+    Find all Open Reading Frames (ORFs) in a given transcript sequence.
     
-    for codon in codons:
-        # Store the codon as the value for each pattern
-        automaton.add_word(codon, codon)
-    
-    automaton.make_automaton()
-    return automaton
-
-
-def find_all_positions(sequence, automaton):
-    """
-    Find positions of all occurrences of patterns from an Aho-Corasick automaton.
-
-    Args:
-        sequence (str): Input sequence to search for patterns
-        automaton (ahocorasick.Automaton): Aho-Corasick automaton with patterns
-
-    Returns:
-        tuple: (frames, codons) where:
-            - frames (dict): Maps frame indices (0,1,2) to lists of positions
-            - codons (dict): Maps positions to identified codons
-    """
-    frames = {0: [], 1: [], 2: []}
-    codons = {}
-    
-    # Use automaton.iter() to find all matches
-    for end_pos, pattern in automaton.iter(sequence):
-        # Calculate the start position (Aho-Corasick gives end position)
-        start_pos = end_pos - len(pattern) + 1
+    Parameters:
+    -----------
+    sequence : str
+        The DNA/RNA transcript sequence to search for ORFs.
+    start_codons : list
+        List of start codons to consider (default: ['ATG', 'GTG', 'TTG']).
+    min_length : int
+        Minimum length of ORF in nucleotides (default: 30).
         
-        # Only accept 3-nucleotide patterns (proper codons)
-        if len(pattern) == 3:
-            # Determine which frame this codon belongs to
-            frame = start_pos % 3
-            frames[frame].append(start_pos)
-            codons[start_pos] = pattern
-            
-    return frames, codons
-
-
-def find_orfs(sequence, startautomaton, stopautomaton, minlength=0, maxlength=1000000):
-    """
-    Predict Open Reading Frames (ORFs) in a nucleotide sequence.
-
-    Args:
-        sequence (str): Nucleotide sequence to analyze
-        startautomaton (ahocorasick.Automaton): Automaton for start codons
-        stopautomaton (ahocorasick.Automaton): Automaton for stop codons
-        minlength (int, optional): Minimum ORF length. Defaults to 0
-        maxlength (int, optional): Maximum ORF length. Defaults to 1000000
-
     Returns:
-        list: List of tuples (start, stop) representing ORF positions
+    --------
+    list
+        List of tuples containing (start_position, end_position).
     """
+    # Default start codons if none provided
+    if start_codons is None:
+        start_codons = ['ATG', 'GTG', 'TTG']
     
-    orf_list = []
-    startpositions, start_codons = find_all_positions(sequence, startautomaton)
-    stoppositions, stop_codons = find_all_positions(sequence, stopautomaton)
+    # Stop codons in DNA
+    stop_codons = ['TAA', 'TAG', 'TGA']
     
-    print("Start positions by frame:", {f: len(p) for f, p in startpositions.items()})
-    print("Stop positions by frame:", {f: len(p) for f, p in stoppositions.items()})
+    # Convert sequence to uppercase
+    sequence = sequence.upper()
     
-    for frame, start_pos_list in startpositions.items():
-        for start_pos in start_pos_list:
-            # Find valid stop codons downstream of start position in the same frame
-            valid_stops = [pos for pos in stoppositions[frame] if pos > start_pos]
+    # Store ORFs as (start, end)
+    orfs = []
+    
+    # Scan through the sequence to find start codons
+    seq_len = len(sequence)
+    i = 0
+    
+    while i <= seq_len - 3:
+        codon = sequence[i:i+3]
+        
+        # Check if current position is a start codon
+        if codon in start_codons:
+            # Start position of potential ORF
+            orf_start = i
             
-            if valid_stops:
-                stop_pos = min(valid_stops)
-                # Calculate real positions - start is the first nucleotide, stop is the last
-                orf_length = stop_pos - start_pos + 3
-                if minlength <= orf_length <= maxlength:
-                    orf_list.append((start_pos, stop_pos + 2))  # End position is inclusive of stop codon
-            else:
-                # If no stop codon, go to the end of the sequence
-                remaining_length = ((len(sequence) - start_pos) // 3) * 3
-                if minlength <= remaining_length <= maxlength:
-                    orf_list.append((start_pos, start_pos + remaining_length - 1))
-
-    return orf_list
+            # Look for the first in-frame stop codon
+            j = i
+            found_stop = False
+            
+            while j <= seq_len - 3:
+                current_codon = sequence[j:j+3]
+                
+                if current_codon in stop_codons:
+                    # ORF found with start and stop codons
+                    orf_end = j + 2  # End position includes the stop codon
+                    
+                    # Only include ORFs that meet minimum length requirement
+                    if orf_end - orf_start + 1 >= min_length:
+                        orfs.append((orf_start, orf_end))
+                    
+                    found_stop = True
+                    break
+                
+                # Move to the next codon (3 nucleotides)
+                j += 3
+            
+            # If no stop codon found, check if it's still worth including
+            if not found_stop and seq_len - orf_start >= min_length:
+                # ORF runs until the end of sequence
+                orf_end = seq_len - 1
+                orfs.append((orf_start, orf_end))
+        
+        # Move to the next position
+        i += 1
+    
+    return orfs
 
 
 def extract_translons(
@@ -228,10 +211,8 @@ def extract_translons(
         return []
 
     stops = {"TAA", "TAG", "TGA"}
-    startautomaton = build_codon_automaton(list(starts))
-    stopautomaton = build_codon_automaton(list(stops))
 
-    translons = find_orfs(sequence, startautomaton, stopautomaton, minlength=min_length)
+    translons = find_orfs(sequence, starts, stops, minlength=min_length)
 
     return sorted([t for t in translons if t[1] - t[0] >= min_length])
 
