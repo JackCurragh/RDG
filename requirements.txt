@@ -17,7 +17,7 @@ Pygments==2.17.2
 pyparsing==3.1.1
 pytest==8.0.0
 python-dateutil==2.8.2
-rich==13.7.0
+rich==13.7.1
 setuptools==68.2.2
 six==1.16.0
 sqlitedict==2.1.0
