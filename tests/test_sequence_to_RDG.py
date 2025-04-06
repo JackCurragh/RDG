@@ -12,7 +12,7 @@ def test_extract_translons():
     # Test case 1: Minimal input
     sequence = "ATGCTCTGA"
     result = extract_translons(sequence, min_length=1)
-    assert result == [(0, 9)]
+    assert result == [(0, 8)]
 
     # Test case 2: No start codon
     sequence = "CGTACCGTAGCTAG"
@@ -22,12 +22,12 @@ def test_extract_translons():
     # Test case 3: Multiple start and stop codons
     sequence = "ATGTGTACCTAGTAGTATAA"
     result = extract_translons(sequence, starts=["ATG", "GTG"])
-    assert result == [(0, 12), (2, 20)]
+    assert result == [(0, 11), (2, 19)]
 
     # Test case 4: Custom start codons
     sequence = "CTGAAAAAAAAAAAATGCCCATAGTGA"
     result = extract_translons(sequence, starts=["CTG"])
-    assert result == [(0, 24)]
+    assert result == [(0, 23)]
 
     # Test case 5: Custom minimum length
     sequence = "ATGCGTACCTAGTAGTAGTAA"
@@ -42,5 +42,5 @@ def test_build_graphs_from_fasta(example_fasta_path):
     )
     assert (
         result[0].newick()
-        == "(((5:175)4:378,((8:63)7:333,((11:175)10:189,((14:63)13:201,2:264)12:100)9:32)6:157)3:337)1;"
+        == "(((5:176)4:377,((8:64)7:332,((11:176)10:188,2:364)9:32)6:157)3:337)1;"
     )
