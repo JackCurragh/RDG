@@ -5,27 +5,19 @@ from sqlitedict import SqliteDict
 def to_dict(obj):
     """
     Recursively convert a class to a dictionary
-
-    Parameters
-    ----------
-    obj : class
-        The class to convert to a dictionary
-
-    Returns
-    -------
-    output : dict
     """
+    # Handle primitive types that don't have __dict__
+    if not hasattr(obj, '__dict__'):
+        return obj
+        
     output = {}
     for key, item in obj.__dict__.items():
         if isinstance(item, list):
-            l = []
-            for item in item:
-                l.append(item)
-
-            output[key] = l
+            output[key] = [to_dict(element) for element in item]
+        elif hasattr(item, '__dict__'):
+            output[key] = to_dict(item)
         else:
             output[key] = item
-
     return output
 
 
@@ -40,16 +32,16 @@ def save(graph, save_file):
     save_file : str
         The name of the file to save to (should end in .sqlite)
     """
-    graph_dict = {graph.locus: {}}
+    graph_dict = {graph.name: {}}
     for attr, value in graph.__dict__.items():
-        if attr not in graph_dict[graph.locus]:
-            graph_dict[graph.locus][attr] = {}
+        if attr not in graph_dict[graph.name]:
+            graph_dict[graph.name][attr] = {}
 
         if isinstance(value, dict):
             for key in value:
-                graph_dict[graph.locus][attr][key] = to_dict(value[key])
+                graph_dict[graph.name][attr][key] = to_dict(value[key])
         else:
-            graph_dict[graph.locus][attr] = value
+            graph_dict[graph.name][attr] = value
 
     try:
         with SqliteDict(save_file) as output_dict:
@@ -102,7 +94,7 @@ def load(locus, cache_file="test_output.sqlite") -> RDG:
         nodes[key] = Node(
             key,
             graph_dict["nodes"][key]["node_type"],
-            graph_dict["nodes"][key]["node_start"],
+            graph_dict["nodes"][key]["position"],
             graph_dict["nodes"][key]["input_edges"],
             graph_dict["nodes"][key]["output_edges"],
             graph_dict["nodes"][key]["input_nodes"],

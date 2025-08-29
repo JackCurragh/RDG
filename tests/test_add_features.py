@@ -14,10 +14,10 @@ def test_inserting_translons_edges():
         key=node_key,
         node_type="start",
         position=start_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
 
     node_key = node_key + 1
@@ -25,10 +25,10 @@ def test_inserting_translons_edges():
         key=node_key,
         node_type="stop",
         position=stop_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     g.add_node(start_node)
     g.add_node(stop_node)
@@ -47,10 +47,10 @@ def test_insterting_translons_nodes():
         key=node_key,
         node_type="start",
         position=start_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
 
     node_key = node_key + 1
@@ -58,10 +58,10 @@ def test_insterting_translons_nodes():
         key=node_key,
         node_type="stop",
         position=stop_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     g.add_node(start_node)
     g.add_node(stop_node)
@@ -80,10 +80,10 @@ def test_insterting_translons_branch_points():
         key=node_key,
         node_type="start",
         position=start_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
 
     node_key = node_key + 1
@@ -91,10 +91,10 @@ def test_insterting_translons_branch_points():
         key=node_key,
         node_type="stop",
         position=stop_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     g.add_node(start_node)
     g.add_node(stop_node)

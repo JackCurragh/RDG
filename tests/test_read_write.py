@@ -31,4 +31,6 @@ class TestAddSCR(unittest.TestCase):
         with self.assertRaises(Exception) as context:
             invalid_load_file()
 
+        print(str(context.exception))
+
         self.assertTrue("Error during loading data" in str(context.exception))

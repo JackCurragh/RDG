@@ -181,7 +181,7 @@ def find_orfs(sequence, start_codons=None, min_length=30):
 
 def extract_translons(
     sequence: str,
-    starts: Set[str] = {"ATG", "CTG", "GTG"},
+    starts: Set[str] = {"ATG"},
     min_length: int = 10,
 ) -> List[Tuple[int, int]]:
     """

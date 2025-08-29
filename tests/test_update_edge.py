@@ -12,10 +12,10 @@ def test_update_edge_input_to_new_to_node():
         key=node_key,
         node_type="start_codon",
         coordinates=start_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
 
     node_key = node_key + 1
@@ -23,10 +23,10 @@ def test_update_edge_input_to_new_to_node():
         key=node_key,
         node_type="stop_codon",
         coordinates=stop_codon_position,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
 
     g.update_edge(2, 1, 5, (1, 1000))

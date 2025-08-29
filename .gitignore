@@ -136,3 +136,23 @@ upload_version.sh
 
 #Ignore sqlite files 
 *.sqlite
+
+# RDG Project specific excludes
+excluded_from_git/
+
+# Large data files
+*.fna.gz
+*.fa.gz
+mane_*.fa
+
+# Experimental results and analysis outputs
+*_analysis_*
+*_models/
+*_comparison.png
+*_summary.txt
+analysis_results/
+
+# Temporary and generated files
+*_cluster_*.txt
+*.newick
+CLEANUP_PLAN.md

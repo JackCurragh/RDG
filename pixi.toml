@@ -1,0 +1,49 @@
+[project]
+name = "rdg"
+version = "0.1.6"
+description = "A python command-line utility for Ribosome Decision Graph (RDG) generation"
+authors = ["Jack Tierney <jackcurragh@gmail.com>"]
+channels = ["conda-forge", "bioconda"]
+platforms = ["linux-64", "osx-64", "osx-arm64", "win-64"]
+
+[dependencies]
+python = ">=3.8,<3.12"
+click = "*"
+pandas = "*"
+matplotlib = "*"
+sqlitedict = "*"
+ahocorasick = "*"
+rich = "*"
+gff2bed = "*"
+pytest = "*"
+
+[tasks]
+# Development tasks
+install-dev = "pip install -e ."
+test = "pytest tests/ -v"
+test-coverage = "pytest tests/ --cov=RDG --cov-report=html"
+
+# CLI tasks
+rdg-help = "rdg --help"
+rdg-visualise-help = "rdg visualise --help"
+rdg-construct-help = "rdg construct --help"
+rdg-prune-help = "rdg prune --help"
+
+# Example usage tasks (uncomment and modify paths as needed)
+# example-fasta = "rdg visualise example.fasta --num_visualised 3"
+# example-construct = "rdg construct example.fasta --input_format fasta"
+
+[feature.docs.dependencies]
+sphinx = "*"
+sphinx-rtd-theme = "*"
+
+[feature.docs.tasks]
+docs-build = "sphinx-build docs/ docs/_build/"
+docs-clean = "rm -rf docs/_build/"
+
+[environments]
+default = {solve-group = "default"}
+docs = {features = ["docs"], solve-group = "default"}
+
+[pypi-dependencies]
+RDG = {path = ".", editable = true}

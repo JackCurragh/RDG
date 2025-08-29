@@ -1,23 +1,13 @@
-click==8.0.3
-cycler==0.11.0
-fonttools==4.27.1
-gff2bed==1.0.3
-iniconfig==2.0.0
-kiwisolver==1.4.5
-markdown-it-py==3.0.0
-matplotlib==3.8.2
-mdurl==0.1.2
-networkx==3.2.1
-numpy==1.26.3
-packaging==23.2
-pillow==10.2.0
-pluggy==1.4.0
-Pygments==2.17.2
-pyparsing==3.1.1
-pytest==8.0.0
-python-dateutil==2.8.2
-setuptools==68.2.2
-six==1.16.0
-sqlitedict==2.1.0
-wheel==0.41.2
-pyahocorasick==2.1.0
+# Core dependencies for RDG
+click>=7.0
+pandas>=1.3.0
+matplotlib>=3.0.0
+sqlitedict>=1.7.0
+pyahocorasick>=1.4.0
+rich>=10.0.0
+
+# Bio-informatics dependencies
+gff2bed>=1.0.0
+
+# Development dependencies
+pytest>=6.0.0

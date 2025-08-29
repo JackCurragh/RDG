@@ -19,14 +19,14 @@ def test_node_init():
         key=node_key,
         node_type="stop",
         position=5,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     assert node.key == node_key
     assert node.node_type == "stop"
-    assert node.node_start == 5
+    assert node.position == 5
 
 
 def test_node_key():
@@ -36,10 +36,10 @@ def test_node_key():
         key=node_key,
         node_type="stop",
         position=5,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     assert node.key == node_key
 
@@ -51,9 +51,9 @@ def test_node_type():
         key=node_key,
         node_type="stop",
         position=5,
-        edges_in=[],
-        edges_out=[],
-        nodes_in=[],
-        nodes_out=[],
+        input_edges=[],
+        output_edges=[],
+        input_nodes=[],
+        output_nodes=[],
     )
     assert node.node_type == "stop"
